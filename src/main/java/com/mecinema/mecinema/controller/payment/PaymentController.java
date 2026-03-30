@@ -1,4 +1,4 @@
-package com.mecinema.mecinema.controller;
+package com.mecinema.mecinema.controller.payment;
 
 import com.mecinema.mecinema.model.dto.payment.PaymentCallbackRequest;
 import com.mecinema.mecinema.model.dto.payment.PaymentInitRequest;
@@ -10,27 +10,26 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import com.mecinema.mecinema.security.CurrentUser;
+import com.mecinema.mecinema.security.CustomUserDetails;
 
 @RestController
-@RequestMapping("/api/payments")
 @RequiredArgsConstructor
 @Validated
 public class PaymentController {
 
-    private static final String USER_HEADER = "X-User-Id";
-
     private final PaymentService paymentService;
 
-    @PostMapping("/bookings/{bookingId}/init")
+    @PostMapping("/api/bookings/{id}/payments")
     public ResponseEntity<PaymentInitResponse> initPayment(
-            @RequestHeader(USER_HEADER) Long userId,
-            @PathVariable Long bookingId,
+            @CurrentUser CustomUserDetails userDetails,
+            @PathVariable("id") Long id,
             @Valid @RequestBody PaymentInitRequest request) {
-        PaymentInitResponse response = paymentService.initPayment(userId, bookingId, request);
+        PaymentInitResponse response = paymentService.initPayment(userDetails.getId(), id, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/callback")
+    @PostMapping("/api/payments/callback")
     public ResponseEntity<Void> callback(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestBody PaymentCallbackRequest request) {

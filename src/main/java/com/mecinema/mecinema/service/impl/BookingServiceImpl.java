@@ -11,16 +11,13 @@ import com.mecinema.mecinema.model.entity.Seat;
 import com.mecinema.mecinema.model.entity.Showtime;
 import com.mecinema.mecinema.model.entity.Ticket;
 import com.mecinema.mecinema.model.entity.User;
-import com.mecinema.mecinema.repo.BookingRepository;
-import com.mecinema.mecinema.repo.PaymentRepository;
-import com.mecinema.mecinema.repo.SeatRepository;
-import com.mecinema.mecinema.repo.ShowtimeRepository;
-import com.mecinema.mecinema.repo.UserRepository;
+import com.mecinema.mecinema.repo.*;
 import com.mecinema.mecinema.service.BookingService;
 import com.mecinema.mecinema.service.PricingService;
 import com.mecinema.mecinema.service.support.BookingFactory;
 import com.mecinema.mecinema.service.support.FoodSelectionService;
 import com.mecinema.mecinema.service.support.SeatSelectionValidator;
+import com.mecinema.mecinema.service.support.TicketSelectionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,45 +39,26 @@ public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
     private final ShowtimeRepository showtimeRepository;
-    private final SeatRepository seatRepository;
-    private final UserRepository userRepository;
+    private final UserRepo userRepo;
     private final PaymentRepository paymentRepository;
-    private final PricingService pricingService;
     private final BookingMapper bookingMapper;
-    private final SeatSelectionValidator seatSelectionValidator;
     private final FoodSelectionService foodSelectionService;
     private final BookingFactory bookingFactory;
+    private final TicketSelectionService ticketSelectionService;
 
     @Override
     @Transactional
     public BookingResponse createBooking(Long userId, BookingRequest request) {
-        User user = userRepository.findById(userId)
+        User user = userRepo.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Showtime showtime = showtimeRepository.findWithDetailsById(request.showtimeId())
                 .orElseThrow(() -> new ResourceNotFoundException("Showtime not found"));
 
-        seatSelectionValidator.validateSelection(showtime, request.seatIds());
-
-        List<Seat> lockedSeats = seatRepository.findAllByIdForUpdate(request.seatIds());
-        if (lockedSeats.size() != request.seatIds().size()) {
-            throw new ResourceNotFoundException("One or more seats are invalid");
-        }
-
-        seatSelectionValidator.ensureSeatsBelongToRoom(showtime, lockedSeats);
-        seatSelectionValidator.ensureSeatsAreFree(showtime, request.seatIds());
-
         Booking booking = bookingFactory.createPendingBooking(user, showtime);
 
-        BigDecimal seatTotal = BigDecimal.ZERO;
-        Set<Ticket> tickets = new LinkedHashSet<>();
-        for (Seat seat : lockedSeats) {
-            BigDecimal seatPrice = pricingService.calculateSeatPrice(showtime.getBasePrice(), seat.getType());
-            Ticket ticket = bookingFactory.createTicket(booking, seat, seatPrice);
-            tickets.add(ticket);
-            seatTotal = seatTotal.add(seatPrice);
-        }
-        booking.setTickets(tickets);
+        TicketSelectionService.TicketSelectionResult ticketResult = ticketSelectionService.createTicketsAndCalculateTotal(booking, showtime, request.seatIds());
+        booking.setTickets(ticketResult.tickets());
 
         Set<BookingFood> bookingFoods = foodSelectionService.buildBookingFoods(booking, request);
         BigDecimal foodTotal = bookingFoods.stream()
@@ -88,7 +66,7 @@ public class BookingServiceImpl implements BookingService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         booking.setBookingFoods(bookingFoods);
 
-        booking.setTotalPrice(seatTotal.add(foodTotal));
+        booking.setTotalPrice(ticketResult.totalSeatPrice().add(foodTotal));
 
         Booking saved = bookingRepository.save(booking);
         return bookingMapper.toResponse(saved, Optional.empty());
@@ -99,7 +77,7 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponse getBooking(Long userId, Long bookingId) {
         Booking booking = bookingRepository.findByIdAndUserId(bookingId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
-        Optional<Payment> payment = paymentRepository.findByBookingId(bookingId);
+        Optional<Payment> payment = paymentRepository.findFirstByBookingIdOrderByCreatedAtDesc(bookingId);
         return bookingMapper.toResponse(booking, payment);
     }
 
@@ -108,12 +86,20 @@ public class BookingServiceImpl implements BookingService {
     public Page<BookingResponse> getBookingHistory(Long userId, Pageable pageable) {
         Page<Booking> bookings = bookingRepository.findByUserIdOrderByBookingTimeDesc(userId, pageable);
         List<Long> bookingIds = bookings.stream().map(Booking::getId).toList();
-        Map<Long, Payment> paymentMap = bookingIds.isEmpty()
-                ? Collections.emptyMap()
-                : paymentRepository.findByBookingIdIn(bookingIds).stream()
-                .collect(Collectors.toMap(payment -> payment.getBooking().getId(), payment -> payment));
-        return bookings.map(booking -> bookingMapper.toResponse(booking, Optional.ofNullable(paymentMap.get(booking.getId()))));
+        
+        Map<Long, Payment> paymentMap = Collections.emptyMap();
+        if (!bookingIds.isEmpty()) {
+            List<Payment> payments = paymentRepository.findByBookingIdInOrderByCreatedAtDesc(bookingIds);
+            paymentMap = payments.stream()
+                .collect(Collectors.toMap(
+                    payment -> payment.getBooking().getId(),
+                    payment -> payment,
+                    (existing, replacement) -> existing // keep first (newest)
+                ));
+        }
+        
+        Map<Long, Payment> finalPaymentMap = paymentMap;
+        return bookings.map(booking -> bookingMapper.toResponse(booking, Optional.ofNullable(finalPaymentMap.get(booking.getId()))));
     }
 
 }
-

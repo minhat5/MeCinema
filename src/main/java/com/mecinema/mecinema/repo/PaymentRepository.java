@@ -11,9 +11,9 @@ import org.springframework.data.jpa.repository.Lock;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
-    Optional<Payment> findByBookingId(Long bookingId);
+    Optional<Payment> findFirstByBookingIdOrderByCreatedAtDesc(Long bookingId);
 
-    List<Payment> findByBookingIdIn(Collection<Long> bookingIds);
+    List<Payment> findByBookingIdInOrderByCreatedAtDesc(Collection<Long> bookingIds);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Payment> findByTransactionNo(String transactionNo);
