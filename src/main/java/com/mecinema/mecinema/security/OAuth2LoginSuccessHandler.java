@@ -31,10 +31,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
 
-        log.info("OAuth2 login successful, user email: {}", email);
         AuthRes authRes = authService.processOAuth2User(email, name);
 
-        String redirectUrl = UriComponentsBuilder.fromUriString("http://localhost:5000/Mecinema/login")
+        String redirectUrl = UriComponentsBuilder.fromUriString("http://localhost:5000/mecinema/login")
                 .queryParam("token", authRes.token())
                 .queryParam("email", authRes.email())
                 .queryParam("name", authRes.fullName())
