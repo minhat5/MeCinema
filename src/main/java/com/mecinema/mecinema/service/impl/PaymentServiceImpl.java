@@ -13,13 +13,14 @@ import com.mecinema.mecinema.repo.BookingRepository;
 import com.mecinema.mecinema.repo.PaymentRepository;
 import com.mecinema.mecinema.service.PaymentService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
@@ -37,13 +38,11 @@ public class PaymentServiceImpl implements PaymentService {
             throw new BookingException("Booking already paid");
         }
 
-        Payment payment = paymentRepository.findByBookingId(bookingId)
-                .orElseGet(Payment::new);
+        Payment payment = new Payment();
         payment.setBooking(booking);
         payment.setPaymentMethod(request.method());
         payment.setStatus(Status.PENDING);
         payment.setTransactionNo(UUID.randomUUID().toString());
-        payment.setPaymentTime(LocalDateTime.now());
 
         Payment saved = paymentRepository.save(payment);
         var redirect = paymentGatewayClient.initCheckout(saved);
@@ -74,6 +73,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
 
         if (payment.getStatus() == Status.SUCCESS) {
+            log.info("Payment with transactionNo {} arrived late hook or duplicated, ignored", transactionNo);
             return; // Already processed
         }
 
@@ -83,8 +83,6 @@ public class PaymentServiceImpl implements PaymentService {
         } else {
             payment.setStatus(Status.SUCCESS);
         }
-
-        payment.setPaymentTime(LocalDateTime.now());
 
         Booking booking = payment.getBooking();
         if (payment.getStatus() == Status.SUCCESS) {

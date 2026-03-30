@@ -259,6 +259,28 @@ class PaymentServiceIntegrationTest {
         assertEquals(Status.PENDING, dbBooking.getStatus());
     }
 
+    @Test
+    void initPayment_multipleAttempts_shouldCreateMultiplePayments() {
+        BookingResponse booking = bookingService.createBooking(userId,
+                new BookingRequest(showtimeId, List.of(seatId), List.of()));
+        
+        // Attempt 1
+        PaymentInitRequest initRequest1 = new PaymentInitRequest(PaymentMethod.SEPAY);
+        PaymentInitResponse initResponse1 = paymentService.initPayment(userId, booking.bookingId(), initRequest1);
+        
+        // Attempt 2
+        PaymentInitRequest initRequest2 = new PaymentInitRequest(PaymentMethod.SEPAY);
+        PaymentInitResponse initResponse2 = paymentService.initPayment(userId, booking.bookingId(), initRequest2);
+        
+        List<Payment> payments = entityManager.createQuery("SELECT p FROM Payment p WHERE p.booking.id = :bookingId", Payment.class)
+                .setParameter("bookingId", booking.bookingId())
+                .getResultList();
+                
+        assertEquals(2, payments.size());
+        assertEquals(initResponse1.transactionNo(), payments.get(0).getTransactionNo());
+        assertEquals(initResponse2.transactionNo(), payments.get(1).getTransactionNo());
+    }
+
     @TestConfiguration
     static class PaymentTestConfig {
         @Bean
