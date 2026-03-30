@@ -9,11 +9,36 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "bookings")
+@NamedEntityGraphs({
+        @NamedEntityGraph(
+                name = "Booking.withDetails",
+                attributeNodes = {
+                        @NamedAttributeNode(value = "showtime", subgraph = "showtimeDetails"),
+                        @NamedAttributeNode(value = "tickets", subgraph = "ticketDetails"),
+                        @NamedAttributeNode(value = "bookingFoods", subgraph = "bookingFoodDetails")
+                },
+                subgraphs = {
+                        @NamedSubgraph(name = "showtimeDetails", attributeNodes = {
+                                @NamedAttributeNode("movie"),
+                                @NamedAttributeNode(value = "room", subgraph = "roomDetails")
+                        }),
+                        @NamedSubgraph(name = "roomDetails", attributeNodes = {
+                                @NamedAttributeNode("cinema")
+                        }),
+                        @NamedSubgraph(name = "ticketDetails", attributeNodes = {
+                                @NamedAttributeNode("seat")
+                        }),
+                        @NamedSubgraph(name = "bookingFoodDetails", attributeNodes = {
+                                @NamedAttributeNode("food")
+                        })
+                }
+        )
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,6 +47,9 @@ public class Booking extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Version
+    private Long version;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -42,8 +70,8 @@ public class Booking extends BaseEntity {
     private Status status = Status.PENDING;
 
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<Ticket> tickets = new ArrayList<>();
+    private Set<Ticket> tickets = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<BookingFood> bookingFoods = new ArrayList<>();
+    private Set<BookingFood> bookingFoods = new LinkedHashSet<>();
 }
