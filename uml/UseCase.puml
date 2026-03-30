@@ -13,12 +13,12 @@ actor "Cổng thanh toán\n(VNPAY/Momo)" as PG
 
 Guest <|-- Customer
 
-rectangle "Hệ thống Rạp chiếu phim (14 Tables Core)" {
+rectangle "Hệ thống Website Đặt vé xem phim" {
 
     package "1. Identity & Access (Tài khoản)" {
         usecase "Đăng ký / Đăng nhập" as UC_Auth
         usecase "Quản lý Hồ sơ cá nhân" as UC_Profile
-        usecase "Quản lý User & Quyền" as UC_ManageUsers
+        usecase "Quản lý User" as UC_ManageUsers
     }
 
     package "2. Catalog (Danh mục Phim)" {
