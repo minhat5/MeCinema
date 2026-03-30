@@ -16,6 +16,10 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<?> getMe(Authentication authentication) {
-
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+        String email = authentication.getName();
+        return ResponseEntity.ok(userService.findByEmail(email));
     }
 }

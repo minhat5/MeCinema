@@ -1,12 +1,13 @@
 package com.mecinema.mecinema.security;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -19,6 +20,7 @@ public class WebSecurityConfig {
 
     private final AuthenticationSuccessHandler oAuth2LoginSuccessHandler;
     private final JwtAuthFilter jwtAuthFilter;
+    private final ObjectProvider<ClientRegistrationRepository> clientRegistrationRepositoryProvider;
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -33,17 +35,17 @@ public class WebSecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .oauth2Login(oauth -> {
-                    oauth.loginPage("/login");
-                    oauth.authorizationEndpoint(auth -> auth
-                            .baseUri("/oauth2/authorization")
-                    );
-                    oauth.redirectionEndpoint(redir -> redir
-                            .baseUri("/login/oauth2/code/*")
-                    );
-                    oauth.successHandler(oAuth2LoginSuccessHandler);
-                })
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        if (clientRegistrationRepositoryProvider.getIfAvailable() != null) {
+            http.oauth2Login(oauth -> {
+                oauth.loginPage("/login");
+                oauth.authorizationEndpoint(auth -> auth.baseUri("/oauth2/authorization"));
+                oauth.redirectionEndpoint(redir -> redir.baseUri("/login/oauth2/code/*"));
+                oauth.successHandler(oAuth2LoginSuccessHandler);
+            });
+        }
+
         return http.build();
     }
 }
