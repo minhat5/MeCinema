@@ -30,7 +30,7 @@ public class SeatAvailabilityServiceImpl implements SeatAvailabilityService {
 
     @Override
     public SeatAvailabilityResponse getSeatAvailability(Long showtimeId) {
-        Showtime showtime = showtimeRepository.findWithDetailsById(showtimeId)
+        Showtime showtime = showtimeRepository.findById(showtimeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Showtime not found"));
 
         List<Seat> seats = seatRepository.findByRoomIdOrderByRowSymbolAscSeatNumberAsc(showtime.getRoom().getId());

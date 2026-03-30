@@ -52,7 +52,7 @@ public class BookingServiceImpl implements BookingService {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        Showtime showtime = showtimeRepository.findWithDetailsById(request.showtimeId())
+        Showtime showtime = showtimeRepository.findById(request.showtimeId())
                 .orElseThrow(() -> new ResourceNotFoundException("Showtime not found"));
 
         Booking booking = bookingFactory.createPendingBooking(user, showtime);
