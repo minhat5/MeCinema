@@ -50,11 +50,12 @@ public class AdminUserController {
         }
     }
 
-    @PutMapping
-    public ResponseEntity<?> updateUser(@RequestBody User user) {
-        if(userService.findById(user.getId()) == null) {
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User user) {
+        if(userService.findById(id) == null) {
             return ResponseEntity.notFound().build();
         }
+        user.setId(id);
         try {
             return ResponseEntity.ok(userService.save(user));
         } catch (RuntimeException e) {
