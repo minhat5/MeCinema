@@ -1,5 +1,6 @@
 package com.mecinema.mecinema.controller.admin;
 
+import com.mecinema.mecinema.model.dto.adminuser.AdminSaveUserRequest;
 import com.mecinema.mecinema.model.entity.User;
 import com.mecinema.mecinema.model.enumtype.RoleUser;
 import com.mecinema.mecinema.service.RoleService;
@@ -12,8 +13,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -44,22 +43,18 @@ public class AdminUserController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody User user) {
+    public ResponseEntity<?> createUser(@RequestBody AdminSaveUserRequest user) {
         try {
-            return ResponseEntity.ok(userService.save(user));
+            return ResponseEntity.ok(userService.createUser(user));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User user) {
-        if(userService.findById(id) == null) {
-            return ResponseEntity.notFound().build();
-        }
-        user.setId(id);
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody AdminSaveUserRequest user) {
         try {
-            return ResponseEntity.ok(userService.save(user));
+            return ResponseEntity.ok(userService.updateUser(id, user));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -91,6 +86,6 @@ public class AdminUserController {
             @RequestParam(defaultValue = "10") int size
             ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
-        return ResponseEntity.ok(userService.findByRole(roleService.findByName(role), pageable));
+        return ResponseEntity.ok(userService.findByRole(role, pageable));
     }
 }

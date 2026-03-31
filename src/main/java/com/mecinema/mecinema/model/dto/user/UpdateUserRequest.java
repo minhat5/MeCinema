@@ -1,4 +1,4 @@
-package com.mecinema.mecinema.model.dto;
+package com.mecinema.mecinema.model.dto.user;
 
 import jakarta.validation.constraints.NotBlank;
 

@@ -1,6 +1,6 @@
 package com.mecinema.mecinema.security;
 
-import com.mecinema.mecinema.model.dto.AuthRes;
+import com.mecinema.mecinema.model.dto.auth.AuthRes;
 import com.mecinema.mecinema.service.AuthService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
