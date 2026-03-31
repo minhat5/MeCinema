@@ -3,7 +3,7 @@ package com.mecinema.mecinema.service.impl;
 import com.mecinema.mecinema.model.entity.Role;
 import com.mecinema.mecinema.model.entity.User;
 import com.mecinema.mecinema.model.enumtype.RoleUser;
-import com.mecinema.mecinema.repo.UserRepo;
+import com.mecinema.mecinema.repo.UserRepository;
 import com.mecinema.mecinema.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final UserRepo userRepo;
+    private final UserRepository userRepo;
     private final PasswordEncoder passwordEncoder;
 
     @Override

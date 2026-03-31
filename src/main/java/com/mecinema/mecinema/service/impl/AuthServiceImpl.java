@@ -5,8 +5,8 @@ import com.mecinema.mecinema.model.dto.AuthRes;
 import com.mecinema.mecinema.model.dto.RegisterReq;
 import com.mecinema.mecinema.model.entity.User;
 import com.mecinema.mecinema.model.enumtype.RoleUser;
-import com.mecinema.mecinema.repo.RoleRepo;
-import com.mecinema.mecinema.repo.UserRepo;
+import com.mecinema.mecinema.repo.RoleRepository;
+import com.mecinema.mecinema.repo.UserRepository;
 import com.mecinema.mecinema.service.AuthService;
 import com.mecinema.mecinema.service.JwtService;
 import jakarta.transaction.Transactional;
@@ -19,14 +19,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.UUID;
 
 @Service
 @Transactional
 @AllArgsConstructor
 public class AuthServiceImpl implements AuthService {
-    private final UserRepo userRepo;
-    private final RoleRepo roleRepo;
+    private final UserRepository userRepo;
+    private final RoleRepository roleRepo;
     private final PasswordEncoder passwordEncoder;
     private final ObjectProvider<AuthenticationManager> amProvider;
     private final JwtService jwtService;

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -16,6 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@EnableMethodSecurity
 public class WebSecurityConfig {
 
     private final AuthenticationSuccessHandler oAuth2LoginSuccessHandler;
@@ -32,9 +34,14 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(reg -> reg
                         .requestMatchers(
                                 "/",
-                                "/api/auth/*",
-                                "/api/user/*"
+                                "/api/auth/**"
                         ).permitAll()
+                        .requestMatchers(
+                                "/api/user/**"
+                        ).authenticated()
+                        .requestMatchers(
+                                "/api/users/**"
+                        ).hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

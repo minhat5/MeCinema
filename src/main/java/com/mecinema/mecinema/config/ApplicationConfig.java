@@ -1,6 +1,6 @@
 package com.mecinema.mecinema.config;
 
-import com.mecinema.mecinema.repo.UserRepo;
+import com.mecinema.mecinema.repo.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,7 +20,7 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService(UserRepo userRepo) {
+    public UserDetailsService userDetailsService(UserRepository userRepo) {
         return email -> userRepo.findByEmail(email)
                 .map(user -> User.withUsername(user.getEmail())
                         .password(user.getPassword())

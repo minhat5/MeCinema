@@ -7,16 +7,12 @@ import com.mecinema.mecinema.model.dto.booking.BookingResponse;
 import com.mecinema.mecinema.model.entity.Booking;
 import com.mecinema.mecinema.model.entity.BookingFood;
 import com.mecinema.mecinema.model.entity.Payment;
-import com.mecinema.mecinema.model.entity.Seat;
 import com.mecinema.mecinema.model.entity.Showtime;
-import com.mecinema.mecinema.model.entity.Ticket;
 import com.mecinema.mecinema.model.entity.User;
 import com.mecinema.mecinema.repo.*;
 import com.mecinema.mecinema.service.BookingService;
-import com.mecinema.mecinema.service.PricingService;
 import com.mecinema.mecinema.service.support.BookingFactory;
 import com.mecinema.mecinema.service.support.FoodSelectionService;
-import com.mecinema.mecinema.service.support.SeatSelectionValidator;
 import com.mecinema.mecinema.service.support.TicketSelectionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,7 +34,7 @@ public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
     private final ShowtimeRepository showtimeRepository;
-    private final UserRepo userRepo;
+    private final UserRepository userRepo;
     private final PaymentRepository paymentRepository;
     private final BookingMapper bookingMapper;
     private final FoodSelectionService foodSelectionService;
