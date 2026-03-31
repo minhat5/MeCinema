@@ -1,12 +1,11 @@
 package com.mecinema.mecinema.controller.admin;
 
 import com.mecinema.mecinema.model.dto.adminuser.AdminSaveUserRequest;
-import com.mecinema.mecinema.model.entity.User;
 import com.mecinema.mecinema.model.enumtype.RoleUser;
 import com.mecinema.mecinema.service.RoleService;
 import com.mecinema.mecinema.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -24,7 +23,7 @@ public class AdminUserController {
     private final RoleService roleService;
 
     @GetMapping
-    public ResponseEntity<Page<User>> getAllUsers(
+    public ResponseEntity<?> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
@@ -33,7 +32,7 @@ public class AdminUserController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Page<User>> searchUsers(
+    public ResponseEntity<?> searchUsers(
             @RequestParam String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -55,7 +54,9 @@ public class AdminUserController {
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody AdminSaveUserRequest user) {
         try {
             return ResponseEntity.ok(userService.updateUser(id, user));
-        } catch (RuntimeException e) {
+        } catch(EntityNotFoundException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -64,8 +65,8 @@ public class AdminUserController {
     public ResponseEntity<?> getUser(@PathVariable long id) {
         try {
             return ResponseEntity.ok(userService.findById(id));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy user!");
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
@@ -74,7 +75,7 @@ public class AdminUserController {
         try {
             userService.delete(id);
             return ResponseEntity.ok("Xoá người dùng thành công");
-        } catch (RuntimeException e) {
+        } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }

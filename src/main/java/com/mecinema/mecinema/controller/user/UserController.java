@@ -3,7 +3,9 @@ package com.mecinema.mecinema.controller.user;
 import com.mecinema.mecinema.model.dto.user.UpdateUserRequest;
 import com.mecinema.mecinema.model.entity.User;
 import com.mecinema.mecinema.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -19,8 +21,10 @@ public class UserController {
         try {
             User me = userService.authed(authentication);
             return ResponseEntity.ok(me);
-        } catch (Exception e) {
+        } catch (SecurityException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
@@ -28,8 +32,10 @@ public class UserController {
     public ResponseEntity<?> update(Authentication authentication, @PathVariable Long id, @RequestBody UpdateUserRequest user) {
         try {
             return ResponseEntity.ok(userService.saveUser(authentication, id, user));
-        } catch (Exception e) {
+        } catch (SecurityException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 }

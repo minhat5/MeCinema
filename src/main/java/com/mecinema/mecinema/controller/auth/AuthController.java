@@ -7,8 +7,10 @@ import com.mecinema.mecinema.model.entity.User;
 import com.mecinema.mecinema.service.AuthService;
 import com.mecinema.mecinema.service.JwtService;
 import com.mecinema.mecinema.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -57,8 +59,8 @@ public class AuthController {
 
         try {
             return ResponseEntity.ok(userService.findByEmail(email));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 }
