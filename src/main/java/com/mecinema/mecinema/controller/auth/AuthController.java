@@ -1,14 +1,16 @@
 package com.mecinema.mecinema.controller.auth;
 
-import com.mecinema.mecinema.model.dto.AuthRes;
-import com.mecinema.mecinema.model.dto.LoginReq;
-import com.mecinema.mecinema.model.dto.RegisterReq;
+import com.mecinema.mecinema.model.dto.auth.AuthRes;
+import com.mecinema.mecinema.model.dto.auth.LoginReq;
+import com.mecinema.mecinema.model.dto.auth.RegisterReq;
 import com.mecinema.mecinema.model.entity.User;
 import com.mecinema.mecinema.service.AuthService;
 import com.mecinema.mecinema.service.JwtService;
 import com.mecinema.mecinema.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -55,11 +57,10 @@ public class AuthController {
             return ResponseEntity.status(401).build();
         }
 
-        User user = userService.findByEmail(email);
-        if(user == null) {
-            return ResponseEntity.status(401).build();
+        try {
+            return ResponseEntity.ok(userService.findByEmail(email));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
-
-        return ResponseEntity.ok(user);
     }
 }

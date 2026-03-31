@@ -1,9 +1,11 @@
 package com.mecinema.mecinema.controller.user;
 
-import com.mecinema.mecinema.model.dto.UpdateUserRequest;
+import com.mecinema.mecinema.model.dto.user.UpdateUserRequest;
 import com.mecinema.mecinema.model.entity.User;
 import com.mecinema.mecinema.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -14,49 +16,26 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserService userService;
 
-    private User authed(Authentication authentication) {
-        if (authentication == null) {
-            throw new SecurityException("Unauthenticated");
-        }
-        return userService.findByEmail(authentication.getName());
-    }
-
     @GetMapping("/me")
     public ResponseEntity<?> me(Authentication authentication) {
         try {
-            User me = authed(authentication);
-            if(me == null) {
-                return ResponseEntity.notFound().build();
-            }
+            User me = userService.authed(authentication);
             return ResponseEntity.ok(me);
-        } catch (Exception e) {
+        } catch (SecurityException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> update(Authentication authentication, @PathVariable Long id, @RequestBody UpdateUserRequest user) {
         try {
-            User me = authed(authentication);
-            if(me == null) {
-                return ResponseEntity.notFound().build();
-            }
-
-            if(!me.getId().equals(id)) {
-                return ResponseEntity.status(403).body("Forbidden");
-            }
-
-            User updateUser = userService.findById(id);
-            if(updateUser == null) {
-                return ResponseEntity.notFound().build();
-            }
-
-            updateUser.setFullName(user.fullName());
-            updateUser.setPhone(user.phone());
-
-            return ResponseEntity.ok(userService.save(updateUser));
-        } catch (Exception e) {
+            return ResponseEntity.ok(userService.saveUser(authentication, id, user));
+        } catch (SecurityException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 }

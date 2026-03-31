@@ -40,7 +40,8 @@ public class WebSecurityConfig {
                                 "/api/user/**"
                         ).authenticated()
                         .requestMatchers(
-                                "/api/users/**"
+                                "/api/users/**",
+                                "/api/foods/**"
                         ).hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )

@@ -1,4 +1,4 @@
-package com.mecinema.mecinema.model.dto;
+package com.mecinema.mecinema.model.dto.auth;
 
 import com.mecinema.mecinema.model.enumtype.RoleUser;
 

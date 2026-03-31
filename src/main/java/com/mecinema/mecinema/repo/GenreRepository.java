@@ -1,11 +1,10 @@
 package com.mecinema.mecinema.repo;
 
-import com.mecinema.mecinema.model.entity.Food;
+import com.mecinema.mecinema.model.entity.Genre;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface FoodRepository extends JpaRepository<Food, Long>, JpaSpecificationExecutor<Food> {
+public interface GenreRepository extends JpaRepository<Genre, Long>, JpaSpecificationExecutor<Genre> {
 }
-

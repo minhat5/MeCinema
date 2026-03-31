@@ -1,19 +1,17 @@
 package com.mecinema.mecinema.controller.admin;
 
-import com.mecinema.mecinema.model.entity.User;
+import com.mecinema.mecinema.model.dto.adminuser.AdminSaveUserRequest;
 import com.mecinema.mecinema.model.enumtype.RoleUser;
 import com.mecinema.mecinema.service.RoleService;
 import com.mecinema.mecinema.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -25,7 +23,7 @@ public class AdminUserController {
     private final RoleService roleService;
 
     @GetMapping
-    public ResponseEntity<Page<User>> getAllUsers(
+    public ResponseEntity<?> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
@@ -34,7 +32,7 @@ public class AdminUserController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Page<User>> searchUsers(
+    public ResponseEntity<?> searchUsers(
             @RequestParam String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -44,23 +42,21 @@ public class AdminUserController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody User user) {
+    public ResponseEntity<?> createUser(@RequestBody AdminSaveUserRequest user) {
         try {
-            return ResponseEntity.ok(userService.save(user));
+            return ResponseEntity.ok(userService.createUser(user));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User user) {
-        if(userService.findById(id) == null) {
-            return ResponseEntity.notFound().build();
-        }
-        user.setId(id);
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody AdminSaveUserRequest user) {
         try {
-            return ResponseEntity.ok(userService.save(user));
-        } catch (RuntimeException e) {
+            return ResponseEntity.ok(userService.updateUser(id, user));
+        } catch(EntityNotFoundException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -69,8 +65,8 @@ public class AdminUserController {
     public ResponseEntity<?> getUser(@PathVariable long id) {
         try {
             return ResponseEntity.ok(userService.findById(id));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy user!");
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
@@ -79,7 +75,7 @@ public class AdminUserController {
         try {
             userService.delete(id);
             return ResponseEntity.ok("Xoá người dùng thành công");
-        } catch (RuntimeException e) {
+        } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
@@ -91,6 +87,6 @@ public class AdminUserController {
             @RequestParam(defaultValue = "10") int size
             ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
-        return ResponseEntity.ok(userService.findByRole(roleService.findByName(role), pageable));
+        return ResponseEntity.ok(userService.findByRole(role, pageable));
     }
 }

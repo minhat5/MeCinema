@@ -1,8 +1,8 @@
 package com.mecinema.mecinema.service.impl;
 
-import com.mecinema.mecinema.model.dto.LoginReq;
-import com.mecinema.mecinema.model.dto.AuthRes;
-import com.mecinema.mecinema.model.dto.RegisterReq;
+import com.mecinema.mecinema.model.dto.auth.LoginReq;
+import com.mecinema.mecinema.model.dto.auth.AuthRes;
+import com.mecinema.mecinema.model.dto.auth.RegisterReq;
 import com.mecinema.mecinema.model.entity.User;
 import com.mecinema.mecinema.model.enumtype.RoleUser;
 import com.mecinema.mecinema.repo.RoleRepository;
