@@ -1,8 +1,8 @@
 package com.mecinema.mecinema.controller.auth;
 
-import com.mecinema.mecinema.model.dto.AuthRes;
-import com.mecinema.mecinema.model.dto.LoginReq;
-import com.mecinema.mecinema.model.dto.RegisterReq;
+import com.mecinema.mecinema.model.dto.auth.AuthRes;
+import com.mecinema.mecinema.model.dto.auth.LoginReq;
+import com.mecinema.mecinema.model.dto.auth.RegisterReq;
 import com.mecinema.mecinema.model.entity.User;
 import com.mecinema.mecinema.service.AuthService;
 import com.mecinema.mecinema.service.JwtService;
@@ -55,11 +55,10 @@ public class AuthController {
             return ResponseEntity.status(401).build();
         }
 
-        User user = userService.findByEmail(email);
-        if(user == null) {
-            return ResponseEntity.status(401).build();
+        try {
+            return ResponseEntity.ok(userService.findByEmail(email));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        return ResponseEntity.ok(user);
     }
 }
