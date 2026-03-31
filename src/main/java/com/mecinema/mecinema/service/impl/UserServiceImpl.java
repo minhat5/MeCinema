@@ -8,6 +8,7 @@ import com.mecinema.mecinema.model.enumtype.RoleUser;
 import com.mecinema.mecinema.repo.RoleRepository;
 import com.mecinema.mecinema.repo.UserRepository;
 import com.mecinema.mecinema.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,7 +30,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(Long id) {
-        User user = userRepo.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        User user = userRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
         if(user.getRole().getName().equals(RoleUser.ADMIN)) {
             throw new RuntimeException("Không thể xoá tài khoản Admin");
         }
@@ -38,12 +39,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findById(Long id) {
-        return userRepo.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        return userRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
     }
 
     @Override
     public User findByEmail(String email) {
-        return userRepo.findByEmail(email).orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        return userRepo.findByEmail(email).orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
     }
 
     @Override
@@ -79,7 +80,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User updateUser(Long id, AdminSaveUserRequest user) {
-        User updateUser = userRepo.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        User updateUser = userRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
         if(!updateUser.getEmail().equals(user.email())) {
             User existingUser = userRepo.findByEmail(user.email()).orElse(null);
             if(existingUser != null) {
@@ -101,7 +102,7 @@ public class UserServiceImpl implements UserService {
         if (authentication == null) {
             throw new SecurityException("Unauthenticated");
         }
-        return userRepo.findByEmail(authentication.getName()).orElseThrow(() -> new SecurityException("Unauthenticated"));
+        return userRepo.findByEmail(authentication.getName()).orElseThrow(() -> new EntityNotFoundException("Unauthenticated"));
     }
 
     @Override
@@ -110,7 +111,7 @@ public class UserServiceImpl implements UserService {
         if(!me.getId().equals(id)) {
             throw new SecurityException("Không có quyền cập nhật thông tin người dùng khác");
         }
-        User updateUser = userRepo.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        User updateUser = userRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
         updateUser.setFullName(user.fullName());
         updateUser.setPhone(user.phone());
         return userRepo.save(updateUser);
