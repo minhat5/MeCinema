@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 
 public interface BookingRepository extends JpaRepository<Booking, Long>, BookingRepositoryExtended {
 
-    boolean existsByIdAndUserId(Long bookingId, Long userId);
 
     @Modifying
     @Query("UPDATE Booking b SET b.status = :newStatus WHERE b.status = :currentStatus AND b.bookingTime <= :timeoutAt")
