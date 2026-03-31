@@ -1,0 +1,9 @@
+package com.mecinema.mecinema.model.dto;
+
+import jakarta.validation.constraints.NotBlank;
+
+public record UpdateUserRequest(
+        @NotBlank(message = "Họ tên không được để trống") String fullName,
+        String phone
+        ) {
+}

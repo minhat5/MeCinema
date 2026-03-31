@@ -1,5 +1,6 @@
 package com.mecinema.mecinema.controller.user;
 
+import com.mecinema.mecinema.model.dto.UpdateUserRequest;
 import com.mecinema.mecinema.model.entity.User;
 import com.mecinema.mecinema.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -33,8 +34,8 @@ public class UserController {
         }
     }
 
-    @PutMapping("{id}")
-    public ResponseEntity<?> update(Authentication authentication, @PathVariable Long id, @RequestBody User user) {
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(Authentication authentication, @PathVariable Long id, @RequestBody UpdateUserRequest user) {
         try {
             User me = authed(authentication);
             if(me == null) {
@@ -45,8 +46,15 @@ public class UserController {
                 return ResponseEntity.status(403).body("Forbidden");
             }
 
-            User updateUser = userService.save(user);
-            return ResponseEntity.ok(updateUser);
+            User updateUser = userService.findById(id);
+            if(updateUser == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            updateUser.setFullName(user.fullName());
+            updateUser.setPhone(user.phone());
+
+            return ResponseEntity.ok(userService.save(updateUser));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
