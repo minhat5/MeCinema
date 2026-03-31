@@ -37,7 +37,22 @@ import java.util.Set;
                                 @NamedAttributeNode("food")
                         })
                 }
-        )
+        ),
+        @NamedEntityGraph(
+                name = "Booking.summary",
+                attributeNodes = {
+                        @NamedAttributeNode(value = "showtime", subgraph = "showtimeSummary")
+                },
+                subgraphs = {
+                        @NamedSubgraph(name = "showtimeSummary", attributeNodes = {
+                                @NamedAttributeNode("movie"),
+                                @NamedAttributeNode(value = "room", subgraph = "roomSummary")
+                        }),
+                        @NamedSubgraph(name = "roomSummary", attributeNodes = {
+                                @NamedAttributeNode("cinema")
+                        })
+                }
+        ),
 })
 @Getter
 @Setter
