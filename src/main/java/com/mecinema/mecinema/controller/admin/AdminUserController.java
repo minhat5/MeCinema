@@ -23,7 +23,7 @@ public class AdminUserController {
     private final RoleService roleService;
 
     @GetMapping
-    public ResponseEntity<?> getAllUsers(
+    public ResponseEntity<?> getAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
@@ -32,31 +32,31 @@ public class AdminUserController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<?> searchUsers(
-            @RequestParam String keyword,
+    public ResponseEntity<?> search(
+            @RequestParam String q,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
-        return ResponseEntity.ok(userService.findByKeyword(keyword, pageable));
+        return ResponseEntity.ok(userService.findByKeyword(q, pageable));
     }
 
     @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody AdminSaveUserRequest user) {
+    public ResponseEntity<?> create(@RequestBody AdminSaveUserRequest user) {
         try {
             return ResponseEntity.ok(userService.createUser(user));
-        } catch (RuntimeException e) {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody AdminSaveUserRequest user) {
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody AdminSaveUserRequest user) {
         try {
             return ResponseEntity.ok(userService.updateUser(id, user));
         } catch(EntityNotFoundException e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }catch (RuntimeException e) {
+        }catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -71,7 +71,7 @@ public class AdminUserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable long id) {
+    public ResponseEntity<?> delete(@PathVariable long id) {
         try {
             userService.delete(id);
             return ResponseEntity.ok("Xoá người dùng thành công");
@@ -81,7 +81,7 @@ public class AdminUserController {
     }
 
     @GetMapping("/role/{role}")
-    public ResponseEntity<?> getUsersByRole(
+    public ResponseEntity<?> getByRole(
             @PathVariable RoleUser role,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size

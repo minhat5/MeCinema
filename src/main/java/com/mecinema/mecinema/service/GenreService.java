@@ -7,10 +7,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface GenreService {
-    Page<Genre> getGenres(Pageable pageable);
-    Genre findGenreById(Long id);
-    Genre createGenre(Genre genre);
-    Genre updateGenre(Long id, Genre genre);
-    void deleteGenre(Long id);
-    Genre findGenreByName(String name);
+    Page<Genre> findAll(Pageable pageable);
+    Genre findById(Long id);
+    Genre create(Genre genre);
+    Genre update(Long id, Genre genre);
+    void delete(Long id);
+    Page<Genre> search(String keyword, Pageable pageable);
 }
