@@ -2,7 +2,6 @@ package com.mecinema.mecinema.service.impl;
 
 import com.mecinema.mecinema.model.dto.adminuser.AdminSaveUserRequest;
 import com.mecinema.mecinema.model.dto.user.UpdateUserRequest;
-import com.mecinema.mecinema.model.entity.Role;
 import com.mecinema.mecinema.model.entity.User;
 import com.mecinema.mecinema.model.enumtype.RoleUser;
 import com.mecinema.mecinema.repo.RoleRepository;
@@ -67,7 +66,7 @@ public class UserServiceImpl implements UserService {
     public User createUser(AdminSaveUserRequest user) {
         User existingUser = userRepo.findByEmail(user.email()).orElse(null);
         if(existingUser != null) {
-            throw new RuntimeException("Email đã tồn tại");
+            throw new IllegalArgumentException("Email đã tồn tại");
         }
         User newUser = new User();
         newUser.setFullName(user.fullName());
@@ -84,7 +83,7 @@ public class UserServiceImpl implements UserService {
         if(!updateUser.getEmail().equals(user.email())) {
             User existingUser = userRepo.findByEmail(user.email()).orElse(null);
             if(existingUser != null) {
-                throw new RuntimeException("Email đã tồn tại");
+                throw new IllegalArgumentException("Email đã tồn tại");
             }
             updateUser.setEmail(user.email());
         }

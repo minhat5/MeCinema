@@ -1,6 +1,5 @@
 package com.mecinema.mecinema.service.impl;
 
-import com.mecinema.mecinema.model.dto.food.FoodRequest;
 import com.mecinema.mecinema.model.entity.Food;
 import com.mecinema.mecinema.model.enumtype.FoodType;
 import com.mecinema.mecinema.repo.FoodRepository;
@@ -22,26 +21,19 @@ public class FoodServiceImpl implements FoodService {
     }
 
     @Override
-    public Food createFood(FoodRequest food) {
-        Food creatingFood = new Food();
-        creatingFood.setName(food.name());
-        creatingFood.setPrice(food.price());
-        creatingFood.setType(food.type());
-        creatingFood.setDescription(food.description());
-        creatingFood.setImageUrl(food.imageUrl());
-        creatingFood.setIsActive(food.isActive());
-        return foodRepository.save(creatingFood);
+    public Food create(Food food) {
+        return foodRepository.save(food);
     }
 
     @Override
-    public Food updateFood(Long id, FoodRequest food) {
+    public Food update(Long id, Food food) {
         Food updatingFood = foodRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Không tìm thấy món ăn với id: " + id));
-        updatingFood.setName(food.name());
-        updatingFood.setPrice(food.price());
-        updatingFood.setType(food.type());
-        updatingFood.setDescription(food.description());
-        updatingFood.setImageUrl(food.imageUrl());
-        updatingFood.setIsActive(food.isActive());
+        updatingFood.setName(food.getName());
+        updatingFood.setPrice(food.getPrice());
+        updatingFood.setType(food.getType());
+        updatingFood.setDescription(food.getDescription());
+        updatingFood.setImageUrl(food.getImageUrl());
+        updatingFood.setIsActive(food.getIsActive());
         return foodRepository.save(updatingFood);
     }
 
