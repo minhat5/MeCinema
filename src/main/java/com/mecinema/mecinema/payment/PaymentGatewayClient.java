@@ -8,7 +8,10 @@ public interface PaymentGatewayClient {
 
     boolean verifySignature(String payload, String signature);
 
+    default boolean checkPaymentStatusAPI(String transactionNo, java.math.BigDecimal expectedAmount) {
+        return false;
+    }
+
     record PaymentRedirect(String paymentUrl, long expiresInSeconds) {
     }
 }
-

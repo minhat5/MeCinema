@@ -91,4 +91,32 @@ public class PaymentServiceImpl implements PaymentService {
             booking.setStatus(Status.FAILED);
         }
     }
+
+    @Override
+    @Transactional
+    public boolean checkPaymentStatusAPI(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
+
+        if (booking.getStatus() == Status.SUCCESS) {
+            return true;
+        }
+
+        Payment payment = paymentRepository.findFirstByBookingIdOrderByCreatedAtDesc(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment not found for booking"));
+
+        if (payment.getStatus() == Status.SUCCESS) {
+            return true;
+        }
+
+        boolean verified = paymentGatewayClient.checkPaymentStatusAPI(payment.getTransactionNo(), booking.getTotalPrice());
+
+        if (verified) {
+            payment.setStatus(Status.SUCCESS);
+            booking.setStatus(Status.SUCCESS);
+            return true;
+        }
+
+        return false;
+    }
 }
