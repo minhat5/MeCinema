@@ -33,12 +33,12 @@ public class AdminUserController {
 
     @GetMapping("/search")
     public ResponseEntity<?> search(
-            @RequestParam String keyword,
+            @RequestParam String q,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
-        return ResponseEntity.ok(userService.findByKeyword(keyword, pageable));
+        return ResponseEntity.ok(userService.findByKeyword(q, pageable));
     }
 
     @PostMapping
