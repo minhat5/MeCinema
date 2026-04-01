@@ -66,12 +66,12 @@ public class AdminGenreController {
 
     @GetMapping("/search")
     public ResponseEntity<?> search(
-            @RequestParam String keyword,
+            @RequestParam String q,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
             Pageable pageable = PageRequest.of(page, size);
-            return ResponseEntity.ok(genreService.search(keyword, pageable));
+            return ResponseEntity.ok(genreService.search(q, pageable));
         } catch(EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
