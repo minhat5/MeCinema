@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 public class Ticket extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ticket_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
