@@ -9,6 +9,7 @@ public class PaymentGatewayProperties {
     private String accountNumber;
     private String template;
     private String webhookToken;
+    private String apiToken;
     private long expiryMinutes = 15;
 
     public String getBankId() {
@@ -41,6 +42,14 @@ public class PaymentGatewayProperties {
 
     public void setWebhookToken(String webhookToken) {
         this.webhookToken = webhookToken;
+    }
+
+    public String getApiToken() {
+        return apiToken;
+    }
+
+    public void setApiToken(String apiToken) {
+        this.apiToken = apiToken;
     }
 
     public long getExpiryMinutes() {

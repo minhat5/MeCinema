@@ -8,4 +8,6 @@ public interface PaymentService {
     PaymentInitResponse initPayment(Long userId, Long bookingId, PaymentInitRequest request);
 
     void handleCallback(PaymentCallbackRequest request, String token);
+
+    boolean checkPaymentStatusAPI(Long bookingId);
 }

@@ -17,7 +17,7 @@ import java.util.Optional;
 public class BookingRepositoryImpl implements BookingRepositoryExtended {
 
     private static final String LOAD_GRAPH_HINT = "jakarta.persistence.loadgraph";
-    private static final String BOOKING_DETAIL_GRAPH = "Booking.detail";
+    private static final String BOOKING_DETAIL_GRAPH = "Booking.withDetails";
     private static final String BOOKING_SUMMARY_GRAPH = "Booking.summary";
 
     @PersistenceContext
