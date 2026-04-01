@@ -61,6 +61,7 @@ import java.util.Set;
 public class Booking extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "booking_id")
     private Long id;
 
     @Version

@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 public class Showtime extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "showtime_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -20,6 +20,7 @@ import java.util.Set;
 public class Movie extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "movie_id")
     private Long id;
 
     @Column(nullable = false)

@@ -19,6 +19,7 @@ import lombok.Setter;
 public class Payment extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "payment_id")
     private Long id;
 
     @Version
