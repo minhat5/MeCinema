@@ -12,14 +12,6 @@ import { useNavigate } from 'react-router-dom';
 import TrailerModal from '../../features/movies/components/TrailerModal';
 import type { MovieResponse } from '../../features/movies/services/movies.service';
 
-// Màu sắc theo age rating
-const AGE_RATING_COLORS: Record<string, string> = {
-  P: 'bg-green-500',
-  C13: 'bg-yellow-500',
-  C16: 'bg-orange-500',
-  C18: 'bg-red-600',
-};
-
 interface MovieCardProps {
   movie: MovieResponse;
   onBuyTicket?: (movie: MovieResponse) => void;
@@ -31,7 +23,7 @@ export default function MovieCard({ movie, onBuyTicket }: MovieCardProps) {
   const [trailerOpened, setTrailerOpened] = useState(false);
 
   const handleCardClick = () => {
-    navigate(`/phim/${movie.slug}`);
+    navigate(`/phim/${movie._id}`);
   };
 
   const handleBuyTicket = (e: React.MouseEvent) => {
@@ -39,7 +31,7 @@ export default function MovieCard({ movie, onBuyTicket }: MovieCardProps) {
     if (onBuyTicket) {
       onBuyTicket(movie);
     } else {
-      navigate(`/phim/${movie.slug}`);
+      navigate(`/phim/${movie._id}`);
     }
   };
 
@@ -67,24 +59,8 @@ export default function MovieCard({ movie, onBuyTicket }: MovieCardProps) {
             loading="lazy"
           />
 
-          {/* Rating Badge — góc phải trên */}
-          <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1">
-            <svg
-              className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400"
-              viewBox="0 0 20 20"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <span className="text-white text-sm font-bold">
-              {movie.rating.toFixed(1)}
-            </span>
-          </div>
-
-          {/* Age Rating Badge — góc phải dưới */}
-          <div
-            className={`absolute bottom-2 right-2 ${AGE_RATING_COLORS[movie.ageRating] || 'bg-gray-500'} text-white text-xs font-bold px-2 py-1 rounded-md`}
-          >
-            {movie.ageRating}
+          <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-2 py-1 rounded-md">
+            {movie.status}
           </div>
 
           {/* HOVER OVERLAY — 2 nút Mua vé + Trailer */}

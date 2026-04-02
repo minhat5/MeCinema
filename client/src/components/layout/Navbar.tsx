@@ -1,15 +1,26 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCurrentUser } from '../../features/auth/hooks/useCurrentUser';
 import { useLogout } from '../../features/auth/hooks/useLogout';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const navigate = useNavigate();
   const { data: user } = useCurrentUser();
   const logout = useLogout();
 
   const handleLogout = () => {
     logout.mutate();
+  };
+
+  const handleSearchSubmit = () => {
+    const keyword = searchText.trim();
+    if (!keyword) {
+      navigate('/phim');
+      return;
+    }
+    navigate(`/phim?search=${encodeURIComponent(keyword)}`);
   };
 
   const navItems = [
@@ -29,7 +40,7 @@ export default function Navbar() {
             <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
               <span className="text-black font-bold text-lg">▶</span>
             </div>
-            <span className="text-xl font-bold hidden sm:inline">MiCinema</span>
+            <span className="text-xl font-bold hidden sm:inline">MeCinema</span>
           </Link>
 
           {/* Desktop Menu */}
@@ -50,6 +61,13 @@ export default function Navbar() {
             {/* Search */}
             <input
               type="text"
+              value={searchText}
+              onChange={(event) => setSearchText(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  handleSearchSubmit();
+                }
+              }}
               placeholder="Tìm kiếm phim..."
               className="hidden lg:block h-11 w-60 xl:w-72 2xl:w-80 bg-white/25 text-white placeholder:text-white/80 px-4 rounded-lg text-sm border border-white/25 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
             />

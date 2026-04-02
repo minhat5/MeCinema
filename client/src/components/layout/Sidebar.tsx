@@ -45,7 +45,7 @@ export default function Sidebar() {
         </div>
         <div className="flex flex-col">
           <span className="text-2xl font-bold text-[#b3c5ff] tracking-tight">
-            MiCinema
+            MeCinema
           </span>
           <span className="text-[10px] uppercase tracking-widest text-[#8c90a1]">
             Admin Portal

@@ -8,9 +8,9 @@
 import { useState, useMemo } from 'react';
 import { Select } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
-import apiClient from '../../../lib/api-client';
 import { getCinemaCities, getCinemas } from '../services/movies.service';
 import { useNavigate } from 'react-router-dom';
+import { useShowtimes } from '../hooks/useShowtimes';
 
 interface ShowtimeSectionProps {
   movieId: string;
@@ -83,14 +83,9 @@ export default function ShowtimeSection({
   ];
 
   // Fetch showtimes cho phim này, lọc theo cinema nếu có
-  const { data: showtimesData, isLoading } = useQuery({
-    queryKey: ['showtimes', 'movie', movieId, selectedCinemaId],
-    queryFn: () =>
-      apiClient.get(`/showtimes/movie/${movieId}`, {
-        params: selectedCinemaId ? { cinemaId: selectedCinemaId } : {},
-      }),
-    enabled: !!movieId,
-    staleTime: 2 * 60 * 1000,
+  const { data: showtimesData, isLoading } = useShowtimes({
+    movieId,
+    cinemaId: selectedCinemaId || undefined,
   });
 
   // Lọc theo ngày đã chọn

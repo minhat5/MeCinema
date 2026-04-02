@@ -21,7 +21,7 @@ export default function Footer() {
               <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
                 <span className="text-black font-bold">▶</span>
               </div>
-              <span className="text-xl font-bold text-white">MiCinema</span>
+              <span className="text-xl font-bold text-white">MeCinema</span>
             </div>
             <p className="text-gray-400 text-sm">
               Hệ thống rạp chiếu phim hàng đầu Việt Nam, mang đến trải nghiệm

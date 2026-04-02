@@ -1,14 +1,14 @@
 /**
  * MovieDetailPage — Trang chi tiết phim
  *
- * URL: /phim/:slug
+ * URL: /phim/:movieId
  * Compose: MovieDetail + ShowtimeSection + Sidebar (Phim đang chiếu)
- * Dùng: useMovieBySlug(), useNowShowing(), useRelatedMovies()
+ * Dùng: useMovieById(), useNowShowing()
  */
 
 import { useParams } from 'react-router-dom';
 import { Container, Loader } from '@mantine/core';
-import { useMovieBySlug } from '../hooks/useMovieDetail';
+import { useMovieById } from '../hooks/useMovieDetail';
 import { useNowShowing } from '../hooks/useMovies';
 import MovieDetail from '../components/MovieDetail';
 import ShowtimeSection from '../components/ShowtimeList';
@@ -16,9 +16,9 @@ import MovieCard from '../../../components/common/MovieCard';
 import type { MovieResponse } from '../services/movies.service';
 
 export default function MovieDetailPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const { movieId } = useParams<{ movieId: string }>();
 
-  const { data: movieData, isLoading, isError } = useMovieBySlug(slug || '');
+  const { data: movieData, isLoading, isError } = useMovieById(movieId || '');
   const { data: nowShowingData } = useNowShowing(6);
 
   const movie: MovieResponse | null = (movieData as any)?.data || null;
@@ -66,7 +66,7 @@ export default function MovieDetailPage() {
         <div className="flex gap-8">
           {/* LEFT: Showtime Section */}
           <div className="flex-1 min-w-0">
-            <ShowtimeSection movieId={movie._id} slug={slug || '404'} />
+            <ShowtimeSection movieId={movie._id} slug={movieId || '404'} />
           </div>
 
           {/* RIGHT: Sidebar — Phim đang chiếu */}

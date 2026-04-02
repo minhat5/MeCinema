@@ -64,7 +64,7 @@ export default function ProfileInfoPage() {
   const displayEmail =
     typeof userRecord.email === 'string'
       ? userRecord.email
-      : 'member@micinema.vn';
+      : 'member@mecinema.vn';
   const rawPhone = typeof userRecord.phone === 'string' ? userRecord.phone : '';
   const displayPhone = rawPhone || 'Chưa cập nhật';
   const memberRole =

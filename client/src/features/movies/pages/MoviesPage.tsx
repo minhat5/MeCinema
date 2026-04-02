@@ -10,9 +10,11 @@
 import { useState } from 'react';
 import { Container, Loader } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
+import { useSearchParams } from 'react-router-dom';
 import {
   useNowShowing,
   useUpcoming,
+  useMovies,
   useCinemaCities,
 } from '../hooks/useMovies';
 import MovieCard from '../../../components/common/MovieCard';
@@ -22,25 +24,38 @@ import type { MovieResponse } from '../services/movies.service';
 type Tab = 'now-showing' | 'upcoming';
 
 export default function MoviesPage() {
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<Tab>('now-showing');
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [cityModalOpened, { open: openCityModal, close: closeCityModal }] =
     useDisclosure(false);
+  const searchKeyword = searchParams.get('search')?.trim() || '';
+  const isSearchMode = searchKeyword.length > 0;
 
   // Fetch data
   const { data: nowShowingData, isLoading: nowShowingLoading } =
     useNowShowing(20);
   const { data: upcomingData, isLoading: upcomingLoading } = useUpcoming(20);
+  const { data: searchData, isLoading: searchLoading } = useMovies({
+    page: 1,
+    limit: 30,
+    search: searchKeyword || undefined,
+  });
   const { data: citiesData } = useCinemaCities();
 
   // Chọn data theo tab
   const movies: MovieResponse[] =
-    activeTab === 'now-showing'
+    isSearchMode
+      ? (searchData as any)?.data?.data || []
+      : activeTab === 'now-showing'
       ? (nowShowingData as any)?.data || []
       : (upcomingData as any)?.data || [];
 
-  const isLoading =
-    activeTab === 'now-showing' ? nowShowingLoading : upcomingLoading;
+  const isLoading = isSearchMode
+    ? searchLoading
+    : activeTab === 'now-showing'
+      ? nowShowingLoading
+      : upcomingLoading;
 
   const cities: string[] = (citiesData as any)?.data || [];
 
@@ -62,22 +77,27 @@ export default function MoviesPage() {
             </h1>
           </div>
 
-          {/* Tabs */}
-          <div className="flex gap-1">
-            {tabs.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`px-4 py-2 text-sm font-semibold rounded-md transition-all duration-200 ${
-                  activeTab === tab.key
-                    ? 'text-blue-800 border-b-2 border-blue-800 bg-transparent'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          {!isSearchMode && (
+            <div className="flex gap-1">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`px-4 py-2 text-sm font-semibold rounded-md transition-all duration-200 ${
+                    activeTab === tab.key
+                      ? 'text-blue-800 border-b-2 border-blue-800 bg-transparent'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {isSearchMode && (
+            <p className="text-sm text-gray-600">Kết quả tìm cho: "{searchKeyword}"</p>
+          )}
 
           {/* Spacer */}
           <div className="flex-1" />
@@ -106,7 +126,6 @@ export default function MoviesPage() {
                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
               />
             </svg>
-            {selectedCity || 'Toàn quốc'}
           </button>
         </div>
 

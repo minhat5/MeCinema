@@ -14,17 +14,7 @@ import {
   resolveImageUrl,
 } from '@/utils/image';
 
-type HomeMovie = MovieResponse & {
-  releaseDate: string | Date;
-  createdAt?: string | Date;
-  slug?: string;
-  language?: string;
-  audioType?: string;
-  ageRating?: string;
-  country?: string;
-  viewCount?: number;
-  directors?: unknown[];
-};
+type HomeMovie = MovieResponse;
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null;
@@ -67,6 +57,7 @@ export default function HomePage() {
     limit: 24,
   });
 
+
   const normalizedMovies = useMemo<HomeMovie[]>(() => {
     if (Array.isArray(moviesResponse)) {
       return moviesResponse as HomeMovie[];
@@ -101,7 +92,11 @@ export default function HomePage() {
 
   const trendingMovies = useMemo(() => {
     return [...normalizedMovies]
-      .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+      .sort((a, b) => {
+        const dateA = new Date(a.releaseDate).getTime();
+        const dateB = new Date(b.releaseDate).getTime();
+        return dateB - dateA;
+      })
       .slice(0, 8);
   }, [normalizedMovies]);
 
@@ -110,7 +105,11 @@ export default function HomePage() {
       .filter(
         (movie) => movie.status === 'RELEASED' || movie.status === 'UPCOMING',
       )
-      .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+      .sort((a, b) => {
+        const dateA = new Date(a.releaseDate).getTime();
+        const dateB = new Date(b.releaseDate).getTime();
+        return dateB - dateA;
+      })
       .slice(0, 8);
   }, [normalizedMovies]);
 
@@ -160,7 +159,7 @@ export default function HomePage() {
                 window.open(movie.trailer as string, '_blank');
               }
             : undefined,
-        onClick: () => navigate(`/phim/${movie.slug}`),
+        onClick: () => navigate(`/phim/${movie._id}`),
       };
     });
   }, [trendingMovies, navigate]);
@@ -170,22 +169,22 @@ export default function HomePage() {
 
   const handlePlay = () => {
     if (!heroMovie) return;
-    navigate(`/phim/${heroMovie.slug}`);
+    navigate(`/phim/${heroMovie._id}`);
   };
 
   const handleInfo = () => {
     if (!heroMovie) return;
-    navigate(`/phim/${heroMovie.slug}`);
+    navigate(`/phim/${heroMovie._id}`);
   };
 
   return (
     <div className="w-full bg-slate-950">
       <HeroSection
-        title={heroMovie?.title || 'MiCinema'}
+        title={heroMovie?.title || 'MeCinema'}
         subtitle={getListLabels(heroMovie?.genres, 'Now Showing')}
         description={
           heroMovie?.description ||
-          'Khám phá những bộ phim mới nhất đang được chiếu tại MiCinema.'
+          'Khám phá những bộ phim mới nhất đang được chiếu tại MeCinema.'
         }
         backgroundImage={
           heroMovie ? getMovieImage(heroMovie, 'hero') : fallbackHero
@@ -251,14 +250,11 @@ export default function HomePage() {
               key={movie._id || movie.title}
               id={movie._id || movie.title}
               title={movie.title}
-              matchPercentage={Math.max(
-                70,
-                Math.min(99, Math.round(movie.rating * 10)),
-              )}
+              matchPercentage={movie.status === 'RELEASED' ? 95 : 80}
               imageUrl={getMovieImage(movie)}
-              rating={`${movie.rating.toFixed(1)}/10`}
+              rating={movie.status === 'RELEASED' ? 'Now Showing' : 'Coming Soon'}
               duration={formatDuration(movie.duration)}
-              onClick={() => navigate(`/phim/${movie.slug}`)}
+              onClick={() => navigate(`/phim/${movie._id}`)}
             />
           ))}
         </HorizontalScrollSection>
@@ -275,7 +271,7 @@ export default function HomePage() {
             <div
               key={movie._id || movie.title}
               className="flex-none w-40 sm:w-48 md:w-56 lg:w-64 aspect-[2/3] bg-slate-800 rounded-lg overflow-hidden group hover:shadow-xl transition-all hover:scale-105 duration-300 relative"
-              onClick={() => navigate(`/phim/${movie.slug}`)}
+              onClick={() => navigate(`/phim/${movie._id}`)}
             >
               <img
                 alt={movie.title}

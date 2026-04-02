@@ -1,62 +1,45 @@
-/**
- * Movies Service — API calls cho module phim
- *
- * Dùng: apiClient (đã auto attach token)
- * Trả về: data đã unwrap từ interceptor (response.data)
- */
-
 import apiClient from '../../../lib/api-client';
+
+interface BackendGenre {
+  id?: number | string;
+  name?: string;
+}
+
+interface BackendMovie {
+  id?: number | string;
+  title?: string;
+  description?: string;
+  genres?: BackendGenre[];
+  durationMinutes?: number;
+  releaseDate?: string;
+  posterUrl?: string;
+  trailerUrl?: string;
+  status?: string;
+  createdAt?: string;
+}
+
+interface SpringPage<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}
 
 export interface MovieResponse {
   _id: string;
   title: string;
-  slug: string;
   description: string;
-  directors: {
-    _id: string;
-    name: string;
-    slug: string;
-    avatar?: string;
-    nationality?: string;
-  }[];
-  actors: {
-    _id: string;
-    name: string;
-    slug: string;
-    avatar?: string;
-    nationality?: string;
-  }[];
-  genres: { _id: string; name: string; slug: string }[];
+  genres: { _id: string; name: string }[];
   duration: number;
   releaseDate: string;
-  endDate?: string;
   poster: string;
   trailer?: string;
-  rating: number;
   status: string;
-  language: string;
-  audioType: string;
-  ageRating: string;
-  country?: string;
-  viewCount: number;
   createdAt: string;
 }
 
-export interface CinemaResponse {
-  _id: string;
-  name: string;
-  slug: string;
-  address: string;
-  city: string;
-  phone?: string;
-  email?: string;
-  description?: string;
-  images: string[];
-  openingHours?: string;
-}
-
 export interface MoviesListResponse {
-  success: boolean;
   data: {
     data: MovieResponse[];
     pagination: {
@@ -68,60 +51,106 @@ export interface MoviesListResponse {
   };
 }
 
-// --- MOVIES API ---
+const mapMovie = (raw: BackendMovie): MovieResponse => {
+  const id = String(raw.id ?? '');
+  const title = raw.title?.trim() || 'Untitled';
 
-export const getMovies = (params?: Record<string, any>) =>
-  params?.search
-    ? apiClient.get('/movie/search', {
+  return {
+    _id: id,
+    title,
+    description: raw.description?.trim() || 'Chua co mo ta cho phim nay.',
+    genres: (raw.genres || []).map((genre, index) => {
+      const genreName = genre.name?.trim() || 'Khac';
+      const genreId = String(genre.id ?? `genre-${index}`);
+      return {
+        _id: genreId,
+        name: genreName,
+      };
+    }),
+    duration: raw.durationMinutes ?? 0,
+    releaseDate: raw.releaseDate || new Date().toISOString(),
+    poster: raw.posterUrl || '',
+    trailer: raw.trailerUrl,
+    status: raw.status || 'UPCOMING',
+    createdAt: raw.createdAt || new Date().toISOString(),
+  };
+};
+
+const mapMoviePage = (page: SpringPage<BackendMovie>): MoviesListResponse => ({
+  data: {
+    data: (page.content || []).map(mapMovie),
+    pagination: {
+      totalItems: page.totalElements ?? 0,
+      totalPages: page.totalPages ?? 0,
+      currentPage: (page.number ?? 0) + 1,
+      itemsPerPage: page.size ?? 10,
+    },
+  },
+});
+
+export const getMovies = async (
+  params?: Record<string, string | number | undefined>,
+): Promise<MoviesListResponse> => {
+  const page = Math.max(0, Number((params?.page as number | undefined) ?? 1) - 1);
+  const size = Number((params?.limit as number | undefined) ?? 10);
+
+  const result = params?.search
+    ? await apiClient.get('/movie/search', {
         params: {
           q: params.search,
-          page: Math.max(0, (params.page ?? 1) - 1),
-          size: params.limit ?? 10,
+          page,
+          size,
         },
       })
-    : apiClient.get('/movie', {
+    : await apiClient.get('/movie', {
         params: {
-          page: Math.max(0, (params?.page ?? 1) - 1),
-          size: params?.limit ?? 10,
+          page,
+          size,
         },
       });
 
-export const getNowShowing = (limit = 10) =>
-  apiClient.get('/movie', { params: { page: 0, size: limit } });
-
-export const getUpcoming = (limit = 10) =>
-  apiClient.get('/movie', { params: { page: 0, size: limit } });
-
-export const getMovieBySlug = (slug: string) =>
-  apiClient
-    .get('/movie/search', { params: { q: slug, page: 0, size: 1 } })
-    .then((res: any) => {
-      const first = Array.isArray(res?.content) ? res.content[0] : undefined;
-      if (!first) {
-        throw new Error('Khong tim thay phim');
-      }
-      return first;
-    });
-
-export const getMovieById = (id: string) => apiClient.get(`/movie/${id}`);
-
-export const getRelatedMovies = (movieId: string, limit = 6) => {
-  void movieId;
-  return apiClient.get('/movie', { params: { page: 0, size: limit } });
+  return mapMoviePage(result as unknown as SpringPage<BackendMovie>);
 };
 
-// --- CINEMAS API ---
+export const getNowShowing = async (limit = 10): Promise<{ data: MovieResponse[] }> => {
+  const response = await getMovies({ page: 1, limit });
+  return { data: response.data.data };
+};
+
+export const getUpcoming = async (limit = 10): Promise<{ data: MovieResponse[] }> => {
+  const response = await getMovies({ page: 1, limit });
+  return { data: response.data.data.filter((movie) => movie.status === 'UPCOMING') };
+};
+
+export const getMovieBySlug = async (slug: string): Promise<{ data: MovieResponse }> => {
+  const response = await getMovies({ search: slug, page: 1, limit: 1 });
+  const first = response.data.data[0];
+  if (!first) {
+    throw new Error('Khong tim thay phim');
+  }
+  return { data: first };
+};
+
+export const getMovieById = async (id: string): Promise<{ data: MovieResponse }> => {
+  const response = await apiClient.get(`/movie/${id}`);
+  return { data: mapMovie(response as unknown as BackendMovie) };
+};
+
+export const getRelatedMovies = async (
+  movieId: string,
+  limit = 6,
+): Promise<{ data: MovieResponse[] }> => {
+  const response = await getMovies({ page: 1, limit: limit + 1 });
+  return { data: response.data.data.filter((movie) => movie._id !== movieId).slice(0, limit) };
+};
 
 export const getCinemas = (params?: Record<string, any>) =>
   apiClient.get('/cinemas', { params: { limit: 100, ...params } });
 
 export const getCinemaCities = () => apiClient.get('/cinemas/cities');
 
-// --- GENRES API ---
-
 export const getGenres = () => apiClient.get('/genres');
 
-// --- FILTER OPTIONS API ---
 
 export const getCountries = () => Promise.resolve([]);
 

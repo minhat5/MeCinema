@@ -90,7 +90,7 @@ public class MovieServiceImpl implements MovieService {
     public Page<Movie> search(String keyword, Pageable pageable) {
         return movieRepository.findAll((root, query, criteriaBuilder) -> {
             String likePattern = "%" + keyword.toLowerCase() + "%";
-            return criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), likePattern);
+            return criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), likePattern);
         },  pageable);
     }
 
@@ -99,8 +99,8 @@ public class MovieServiceImpl implements MovieService {
         return movieRepository.findAll((root, query, criteriaBuilder) -> {
             String likePattern = "%" + keyword.toLowerCase() + "%";
             return criteriaBuilder.and(
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), likePattern),
-                    criteriaBuilder.equal(root.get("status"), "RELEASED")
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), likePattern),
+                    criteriaBuilder.equal(root.get("status"), MovieStatus.RELEASED)
             );
         },  pageable);
     }

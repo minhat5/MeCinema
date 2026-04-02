@@ -43,8 +43,10 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
                                 "/",
-                                "/api/auth/**"
+                                "/api/auth/**",
+                                "/api/movie/**"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/showtimes/**").permitAll()
                         .requestMatchers(
                                 "/api/user/**"
                         ).authenticated()

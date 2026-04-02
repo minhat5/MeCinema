@@ -20,23 +20,14 @@ function App() {
 
     return (
         <Routes>
-            {/* App Layout Routes */}
             <Route element={<AppLayout />}>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/phim" element={<MoviesPage />} />
+                <Route path="/phim/:movieId" element={<MovieDetailPage />} />
                 <Route path="/schedule" element={<div>Schedule Page</div>} />
                 <Route path="/offers" element={<div>Offers Page</div>} />
                 <Route path="/news" element={<div>News Page</div>} />
-
-                {/* Movies / Cinema */}
-                <Route path="/phim" element={<MoviesPage />} />
-                <Route path="/phim/:slug" element={<MovieDetailPage />} />
                 <Route path="/dien-anh" element={<CinemaBrowsePage />} />
-                {/* 404 Redirect */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-                {/* Movies */}
-
-                <Route path="/phim/:slug" element={<MovieDetailPage />} />
 
                 {/*
                   TODO: re-enable when booking/food UI modules are implemented.
@@ -46,7 +37,6 @@ function App() {
                   <Route path="/order/food" ... />
                   <Route path="/order/food/confirm/:orderId" ... />
                 */}
-                {/* Persons feature is disabled */}
             </Route>
 
             {/* Auth Routes (without AppLayout) */}
@@ -85,11 +75,7 @@ function App() {
                 <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
             </Route>
 
-            {/* 404 Redirect */}
             <Route path="*" element={<Navigate to="/" replace />} />
-            {/* Movies */}
-            <Route path="/phim" element={<MoviesPage />} />
-            <Route path="/phim/:slug" element={<MovieDetailPage />} />
         </Routes>
     );
 }
