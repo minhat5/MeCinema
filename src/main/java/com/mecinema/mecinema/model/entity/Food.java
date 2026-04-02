@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 public class Food extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "food_id")
     private Long id;
 
     @Column(nullable = false)

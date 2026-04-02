@@ -15,6 +15,7 @@ import lombok.Setter;
 public class Cinema extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "cinema_id")
     private Long id;
 
     @Column(nullable = false)

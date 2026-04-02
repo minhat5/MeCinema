@@ -16,6 +16,7 @@ import lombok.Setter;
 public class Role extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "role_id")
     private Long id;
 
     @Column(nullable = false, unique = true)

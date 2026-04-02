@@ -1,6 +1,6 @@
 package com.mecinema.mecinema.controller.admin;
 
-import com.mecinema.mecinema.model.dto.food.FoodRequest;
+import com.mecinema.mecinema.model.entity.Food;
 import com.mecinema.mecinema.model.enumtype.FoodType;
 import com.mecinema.mecinema.service.FoodService;
 import jakarta.persistence.EntityNotFoundException;
@@ -21,7 +21,7 @@ public class AdminFoodController {
     private final FoodService foodService;
 
     @GetMapping
-    public ResponseEntity<?> getAllFoods(
+    public ResponseEntity<?> getAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ){
@@ -39,25 +39,25 @@ public class AdminFoodController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createFood(@RequestBody FoodRequest food){
+    public ResponseEntity<?> create(@RequestBody Food food){
         try{
-            return ResponseEntity.ok(foodService.createFood(food));
+            return ResponseEntity.ok(foodService.create(food));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateFood(@PathVariable Long id, @RequestBody FoodRequest food){
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Food food){
         try {
-            return ResponseEntity.ok(foodService.updateFood(id, food));
+            return ResponseEntity.ok(foodService.update(id, food));
         } catch(EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteFood(@PathVariable Long id){
+    public ResponseEntity<?> delete(@PathVariable Long id){
         try {
             foodService.delete(id);
             return ResponseEntity.ok("Xóa món ăn thành công");
@@ -67,7 +67,7 @@ public class AdminFoodController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<?> searchFood(@RequestParam String name,
+    public ResponseEntity<?> search(@RequestParam String name,
                                         @RequestParam FoodType type,
                                         @RequestParam Boolean isActive,
                                         @RequestParam(defaultValue = "0") int page,
