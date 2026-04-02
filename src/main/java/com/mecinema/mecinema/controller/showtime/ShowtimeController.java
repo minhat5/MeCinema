@@ -1,4 +1,4 @@
-package com.mecinema.mecinema.controller;
+package com.mecinema.mecinema.controller.showtime;
 
 import com.mecinema.mecinema.model.dto.*;
 import com.mecinema.mecinema.service.ShowtimeService;
