@@ -34,8 +34,11 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentInitResponse initPayment(Long userId, Long bookingId, PaymentInitRequest request) {
         Booking booking = bookingRepository.findByIdAndUserId(bookingId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
+        
         if (booking.getStatus() == Status.SUCCESS) {
             throw new BookingException("Booking already paid");
+        } else if (booking.getStatus() == Status.FAILED) {
+            throw new BookingException("Booking has expired or failed. Please create a new booking.");
         }
 
         Payment payment = new Payment();
@@ -77,18 +80,27 @@ public class PaymentServiceImpl implements PaymentService {
             return; // Already processed
         }
 
+        Booking booking = payment.getBooking();
+        
+        // If booking is already failed (e.g. timeout), log it. Money must be refunded manually.
+        if (booking.getStatus() == Status.FAILED && request.transferAmount().compareTo(booking.getTotalPrice()) >= 0) {
+            log.error("LATE PAYMENT RECEIVED! Booking {} was FAILED but received {} from {}. Manual refund required.", 
+                      booking.getId(), request.transferAmount(), transactionNo);
+            payment.setStatus(Status.SUCCESS);
+            // Do not change booking status to SUCCESS to avoid double-booking the same seat!
+            return;
+        }
+
         // Add additional logic: In sepay, we must check if amount_in >= booking price. (Transfer amount may be less due to fee configuration).
         if (request.transferAmount().compareTo(payment.getBooking().getTotalPrice()) < 0) {
             payment.setStatus(Status.FAILED);
+            // Khách chuyển thiếu tiền -> Code chỉ đánh rớt giao dịch Payment này. 
+            // KHÔNG chuyển Booking thành FAILED ở đây để giữ ghế (Booking vẫn PENDING) cho đến khi Cron job 10 phút quét.
+            log.warn("Payment FAILED for booking {} due to insufficient amount. Expected: {}, Received: {}", 
+                     booking.getId(), payment.getBooking().getTotalPrice(), request.transferAmount());
         } else {
             payment.setStatus(Status.SUCCESS);
-        }
-
-        Booking booking = payment.getBooking();
-        if (payment.getStatus() == Status.SUCCESS) {
             booking.setStatus(Status.SUCCESS);
-        } else {
-            booking.setStatus(Status.FAILED);
         }
     }
 
@@ -100,6 +112,10 @@ public class PaymentServiceImpl implements PaymentService {
 
         if (booking.getStatus() == Status.SUCCESS) {
             return true;
+        }
+        
+        if (booking.getStatus() == Status.FAILED) {
+            return false; // Already failed/expired, prevent checking further
         }
 
         Payment payment = paymentRepository.findFirstByBookingIdOrderByCreatedAtDesc(bookingId)
