@@ -1,4 +1,4 @@
-package com.mecinema.mecinema.model.dto.adminuser;
+package com.mecinema.mecinema.model.dto.user;
 
 import com.mecinema.mecinema.model.enumtype.RoleUser;
 import jakarta.validation.constraints.Email;

@@ -1,121 +1,97 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { Navigate, Route, Routes } from 'react-router-dom';
+import './App.css';
+import AppLayout from './components/layout/AppLayout';
+import AdminLayout from './components/layout/AdminLayout';
+import HomePage from './pages/HomePage';
+import LoginPage from './features/auth/pages/LoginPage';
+import RegisterPage from './features/auth/pages/RegisterPage';
+import MoviesPage from './features/movies/pages/MoviesPage';
+import MovieDetailPage from './features/movies/pages/MovieDetailPage';
+import { ProtectedRoute } from './components/common/ProtectedRoute';
+import { adminRoutes } from './features/admin/routes';
+import { ROLES } from '@shared/constants/roles';
+import CinemaBrowsePage from './features/movies/pages/CinemaBrowsePage';
+import ProfileInfoPage from './features/user/pages/ProfileInfoPage';
+// Booking/Food modules are not ready yet.
 
 function App() {
-  const [count, setCount] = useState(0)
+    const adminChildren =
+        adminRoutes.find((route) => route.path === 'admin')?.children || [];
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    return (
+        <Routes>
+            {/* App Layout Routes */}
+            <Route element={<AppLayout />}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/phim" element={<MoviesPage />} />
+                <Route path="/schedule" element={<div>Schedule Page</div>} />
+                <Route path="/offers" element={<div>Offers Page</div>} />
+                <Route path="/news" element={<div>News Page</div>} />
 
-      <div className="ticks"></div>
+                {/* Movies / Cinema */}
+                <Route path="/phim" element={<MoviesPage />} />
+                <Route path="/phim/:slug" element={<MovieDetailPage />} />
+                <Route path="/dien-anh" element={<CinemaBrowsePage />} />
+                {/* 404 Redirect */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+                {/* Movies */}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+                <Route path="/phim/:slug" element={<MovieDetailPage />} />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+                {/*
+                  TODO: re-enable when booking/food UI modules are implemented.
+                  <Route path="/booking/:slug/:showtimeId" ... />
+                  <Route path="/booking/confirm/:bookingId" ... />
+                  <Route path="/booking/result/:bookingId" ... />
+                  <Route path="/order/food" ... />
+                  <Route path="/order/food/confirm/:orderId" ... />
+                */}
+                {/* Persons feature is disabled */}
+            </Route>
+
+            {/* Auth Routes (without AppLayout) */}
+            <Route
+                path="/member"
+                element={
+                    <ProtectedRoute>
+                        <ProfileInfoPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/infor"
+                element={
+                    <ProtectedRoute>
+                        <ProfileInfoPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+
+            {/* Admin Routes */}
+            <Route
+                path="/admin"
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+                        <AdminLayout />
+                    </ProtectedRoute>
+                }
+            >
+                <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                {adminChildren.map((child) => (
+                    <Route key={child.path} path={child.path} element={child.element} />
+                ))}
+                <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+            </Route>
+
+            {/* 404 Redirect */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+            {/* Movies */}
+            <Route path="/phim" element={<MoviesPage />} />
+            <Route path="/phim/:slug" element={<MovieDetailPage />} />
+        </Routes>
+    );
 }
 
-export default App
+export default App;

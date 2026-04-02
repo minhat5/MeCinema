@@ -1,0 +1,41 @@
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import { Center, Loader } from '@mantine/core';
+import type { JSX } from 'react';
+
+interface ProtectedRouteProps {
+  children: JSX.Element;
+  allowedRoles?: string[];
+}
+
+export const ProtectedRoute = ({
+  children,
+  allowedRoles,
+}: ProtectedRouteProps) => {
+  const { user, isAuthenticated, isLoading, isError } = useAuth();
+  const token = localStorage.getItem('accessToken');
+  const location = useLocation();
+
+  if (isLoading || (token && !user && !isError)) {
+    return (
+      <Center style={{ height: '100vh' }}>
+        <Loader color="red" size="xl" />
+      </Center>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  const userRole =
+    typeof user?.role === 'string'
+      ? user.role.replace(/^ROLE_/, '')
+      : (user?.role as { name?: string } | undefined)?.name?.replace(/^ROLE_/, '');
+
+  if (allowedRoles && user && (!userRole || !allowedRoles.includes(userRole))) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
