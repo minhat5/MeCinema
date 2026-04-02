@@ -12,7 +12,9 @@ import { adminRoutes } from './features/admin/routes';
 import { ROLES } from '@shared/constants/roles';
 import CinemaBrowsePage from './features/movies/pages/CinemaBrowsePage';
 import ProfileInfoPage from './features/user/pages/ProfileInfoPage';
-// Booking/Food modules are not ready yet.
+import BookingPage from './features/booking/pages/BookingPage';
+import BookingConfirmPage from './features/booking/pages/BookingConfirmPage';
+import BookingResultPage from './features/booking/pages/BookingResultPage';
 
 function App() {
     const adminChildren =
@@ -29,14 +31,21 @@ function App() {
                 <Route path="/news" element={<div>News Page</div>} />
                 <Route path="/dien-anh" element={<CinemaBrowsePage />} />
 
-                {/*
-                  TODO: re-enable when booking/food UI modules are implemented.
-                  <Route path="/booking/:slug/:showtimeId" ... />
-                  <Route path="/booking/confirm/:bookingId" ... />
-                  <Route path="/booking/result/:bookingId" ... />
-                  <Route path="/order/food" ... />
-                  <Route path="/order/food/confirm/:orderId" ... />
-                */}
+                <Route path="/booking/:slug/:showtimeId" element={
+                    <ProtectedRoute>
+                        <BookingPage />
+                    </ProtectedRoute>
+                } />
+                <Route path="/booking/confirm/:bookingId" element={
+                    <ProtectedRoute>
+                        <BookingConfirmPage />
+                    </ProtectedRoute>
+                } />
+                <Route path="/booking/result/:bookingId" element={
+                    <ProtectedRoute>
+                        <BookingResultPage />
+                    </ProtectedRoute>
+                } />
             </Route>
 
             {/* Auth Routes (without AppLayout) */}

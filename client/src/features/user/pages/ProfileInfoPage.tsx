@@ -14,7 +14,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/layout/Navbar';
 import { updateMeApi } from '@/features/auth/services/auth.service';
-// Booking hooks are intentionally disabled until booking module is ready.
+import { useMyBookings } from '@/features/booking/hooks/useMyBookings';
 
 type SectionKey = 'info' | 'tickets' | 'loyalty' | 'password';
 
@@ -116,7 +116,20 @@ export default function ProfileInfoPage() {
     [displayName, displayEmail, displayPhone, totalPoints],
   );
 
-  const bookingItems = useMemo<TicketItem[]>(() => [], []);
+  const { data: bookingsData, isLoading: isLoadingBookings } = useMyBookings(1, 20);
+
+  const bookingItems = useMemo<TicketItem[]>(() => {
+    if (!bookingsData?.bookings) return [];
+    return bookingsData.bookings
+      .filter((b: any) => b.status !== 'CANCELLED' && b.status !== 'CANCELED' && b.status !== 'FAILED' && b.status !== 'HUY')
+      .map((b: any) => ({
+      id: b._id,
+      movieTitle: b.showtimeId?.movieId?.title || 'Unknown Movie',
+      showtime: b.showtimeId?.startTime ? new Date(b.showtimeId.startTime).toLocaleString('vi-VN') : 'Unknown Time',
+      seat: b.seats?.map((s: any) => `${s.row}${s.column}`).join(', ') || 'N/A',
+      status: b.status,
+    }));
+  }, [bookingsData]);
 
   const handleLogout = () => {
     logout();
@@ -215,10 +228,37 @@ export default function ProfileInfoPage() {
             <Ticket className="h-5 w-5 text-rose-300" />
             <h2 className="text-xl font-bold sm:text-2xl">Lịch sử đặt vé</h2>
           </div>
-          <p className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
-            Tính năng đặt vé đang được hoàn thiện.
-          </p>
-          {bookingItems.length > 0 && null}
+          {isLoadingBookings ? (
+            <p className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
+              Đang tải lịch sử đặt vé...
+            </p>
+          ) : bookingItems.length === 0 ? (
+            <p className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
+              Bạn chưa có vé nào. Lịch sử hiển thị trống!
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              {bookingItems.map((ticket) => (
+                <div key={ticket.id} className="rounded-xl border border-white/10 bg-white/5 p-4 flex flex-col gap-2 relative">
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-bold text-lg text-rose-100">{ticket.movieTitle}</h3>
+                    <span className={`px-2 py-1 text-xs font-bold rounded ${
+                      ['SUCCESS', 'SUCCESSFUL', 'PAID', 'COMPLETED'].includes(ticket.status?.toUpperCase()) ? 'bg-green-500/20 text-green-300' :
+                      ticket.status === 'PENDING' ? 'bg-yellow-500/20 text-yellow-300' :
+                      'bg-red-500/20 text-red-300' // fallback if any other status slips through
+                    }`}>
+                      {['SUCCESS', 'SUCCESSFUL', 'PAID', 'COMPLETED'].includes(ticket.status?.toUpperCase()) ? 'Đã Thanh Toán' : ticket.status === 'PENDING' ? 'Chưa Thanh Toán' : ticket.status}
+                    </span>
+                  </div>
+                  <div className="text-sm text-white/70 mt-2">
+                    <p className="mb-1"><span className="font-semibold text-white/90">Mã đặt vé:</span> {ticket.id}</p>
+                    <p className="mb-1"><span className="font-semibold text-white/90">Suất chiếu:</span> {ticket.showtime}</p>
+                    <p><span className="font-semibold text-white/90">Ghế ngồi:</span> {ticket.seat}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       );
     }
@@ -400,7 +440,7 @@ export default function ProfileInfoPage() {
     <div className="min-h-screen bg-[#0d0d0f] text-white">
       <Navbar />
 
-      <div className="mx-auto flex w-full max-w-[1600px] pt-4">
+      <div className="mx-auto flex w-full max-w-400 pt-4">
         <aside className="sticky top-20 hidden h-[calc(100vh-6rem)] w-72 shrink-0 rounded-r-2xl border-r border-white/10 bg-[#09090b] p-5 lg:flex lg:flex-col">
           <div className="mb-6 rounded-2xl border border-white/10 bg-white/5 p-4">
             <p className="truncate text-sm font-semibold">{displayName}</p>
@@ -419,7 +459,7 @@ export default function ProfileInfoPage() {
                   onClick={() => setActiveSection(item.key)}
                   className={`group flex w-full items-center justify-between rounded-xl px-4 py-3 text-sm transition ${
                     isActive
-                      ? 'bg-gradient-to-r from-rose-500/25 to-rose-300/10 text-rose-200'
+                      ? 'bg-linear-to-r from-rose-500/25 to-rose-300/10 text-rose-200'
                       : 'text-white/70 hover:bg-white/10 hover:text-white'
                   }`}
                 >
@@ -468,13 +508,13 @@ export default function ProfileInfoPage() {
             </button>
           </div>
 
-          <section className="relative h-[240px] w-full sm:h-[280px]">
+          <section className="relative h-60 w-full sm:h-70">
             <img
               src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1800&h=900&fit=crop"
               alt="Cinema"
               className="h-full w-full object-cover opacity-45"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/35 to-[#0d0d0f]" />
+            <div className="absolute inset-0 bg-linear-to-b from-black/20 via-black/35 to-[#0d0d0f]" />
             <div className="absolute inset-x-0 bottom-8 px-4 sm:px-8 lg:px-10">
               <div className="pb-1">
                 <span className="mb-2 inline-flex rounded-sm bg-rose-500/25 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-rose-200">
