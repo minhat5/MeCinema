@@ -36,7 +36,7 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Email đã tồn tại");
         }
 
-         if(!registerReq.getPassword().equals(registerReq.getPassword())) {
+         if(!registerReq.getPassword().equals(registerReq.getConfirmPassword())) {
              throw new RuntimeException("Passwords không khớp");
          }
 

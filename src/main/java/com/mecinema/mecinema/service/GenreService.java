@@ -3,9 +3,7 @@ package com.mecinema.mecinema.service;
 import com.mecinema.mecinema.model.entity.Genre;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
 
-@Service
 public interface GenreService {
     Page<Genre> findAll(Pageable pageable);
     Genre findById(Long id);

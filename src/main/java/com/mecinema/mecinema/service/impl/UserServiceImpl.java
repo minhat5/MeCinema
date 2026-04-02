@@ -1,6 +1,6 @@
 package com.mecinema.mecinema.service.impl;
 
-import com.mecinema.mecinema.model.dto.adminuser.AdminSaveUserRequest;
+import com.mecinema.mecinema.model.dto.user.AdminSaveUserRequest;
 import com.mecinema.mecinema.model.dto.user.UpdateUserRequest;
 import com.mecinema.mecinema.model.entity.User;
 import com.mecinema.mecinema.model.enumtype.RoleUser;
