@@ -45,7 +45,10 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setBooking(booking);
         payment.setPaymentMethod(request.method());
         payment.setStatus(Status.PENDING);
-        payment.setTransactionNo(UUID.randomUUID().toString());
+        
+        // Generate a short transaction number (e.g. BKG123-A1B2C) to avoid truncation by banks
+        String shortUid = UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase();
+        payment.setTransactionNo("BKG" + bookingId + shortUid);
 
         Payment saved = paymentRepository.save(payment);
         var redirect = paymentGatewayClient.initCheckout(saved);

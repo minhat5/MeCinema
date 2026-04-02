@@ -60,7 +60,7 @@ export default function ShowtimeSection({
     staleTime: 30 * 60 * 1000,
   });
 
-  // Fetch danh sách rạp (lọc theo city nếu có)
+  // Fetch danh sách rạp
   const { data: cinemasData } = useQuery({
     queryKey: ['cinemas', 'list', selectedCity],
     queryFn: () => getCinemas(selectedCity ? { city: selectedCity } : {}),
@@ -269,9 +269,7 @@ export default function ShowtimeSection({
                         return (
                           <button
                             onClick={() => {
-                              // TODO: re-enable booking flow when booking pages are implemented.
-                              void navigate;
-                              void slug;
+                              navigate(`/booking/${slug}/${st._id}`);
                             }}
                             key={st._id}
                             className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:border-orange-500 hover:text-orange-500 transition-colors duration-200 cursor-pointer"

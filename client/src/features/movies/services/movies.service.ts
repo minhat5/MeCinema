@@ -144,13 +144,33 @@ export const getRelatedMovies = async (
   return { data: response.data.data.filter((movie) => movie._id !== movieId).slice(0, limit) };
 };
 
-export const getCinemas = (params?: Record<string, any>) =>
-  apiClient.get('/cinemas', { params: { limit: 100, ...params } });
+export const getCinemas = async (params?: Record<string, any>) => {
+  // Backend không có API trực tiếp lấy danh sách rạp /cinemas
+  // Phải fetch thông qua danh sách showtimes để lấy ra các rạp duy nhất
+  const response = await apiClient.get('/showtimes', { params: { size: 1000 } });
+  const rawShowtimes: any[] = (response as any).data?.content || [];
+  
+  const cinemasMap = new Map<string, any>();
+  
+  rawShowtimes.forEach((st) => {
+    if (st.cinemaId) {
+      const cId = String(st.cinemaId);
+      if (!cinemasMap.has(cId)) {
+        cinemasMap.set(cId, {
+          _id: cId,
+          name: st.cinemaName || `Rạp ${cId}`,
+          city: 'Toàn quốc', 
+        });
+      }
+    }
+  });
+  
+  return { data: Array.from(cinemasMap.values()) };
+};
 
-export const getCinemaCities = () => apiClient.get('/cinemas/cities');
+export const getCinemaCities = () => Promise.resolve({ data: ['Toàn quốc'] });
 
 export const getGenres = () => apiClient.get('/genres');
-
 
 export const getCountries = () => Promise.resolve([]);
 
