@@ -1,0 +1,165 @@
+import { useState } from 'react';
+import {
+  Button,
+  NumberInput,
+  Select,
+  TextInput,
+  Textarea,
+} from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { PRODUCT_CATEGORY } from '@shared/constants/food-constants';
+import type { CreateProductInput } from '@shared/schemas/food.schema';
+import { useCreateProduct } from '../hooks/useFoodCRUD';
+import { FoodProductImageField } from './FoodProductImageField';
+import { getDirectImageUrlError } from '../utils/image-url';
+
+const inputStyles = {
+  input: {
+    backgroundColor: '#060e20',
+    border: 'none',
+    color: '#dae2fd',
+  },
+};
+
+const CATEGORY_LABELS: Record<string, string> = {
+  [PRODUCT_CATEGORY.FOOD]: 'Đồ ăn',
+  [PRODUCT_CATEGORY.DRINK]: 'Nước uống',
+};
+
+type Props = {
+  onSuccess: () => void;
+};
+
+export function ProductForm({ onSuccess }: Props) {
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState<number | string>('');
+  const [image, setImage] = useState('');
+  const [category, setCategory] = useState<string | null>(
+    PRODUCT_CATEGORY.FOOD,
+  );
+  const [description, setDescription] = useState('');
+  const createProduct = useCreateProduct();
+
+  const categoryData = [
+    { value: PRODUCT_CATEGORY.FOOD, label: CATEGORY_LABELS.FOOD },
+    { value: PRODUCT_CATEGORY.DRINK, label: CATEGORY_LABELS.DRINK },
+  ];
+
+  const handleSubmit = async () => {
+    if (!name.trim() || !image.trim() || !category) {
+      notifications.show({
+        color: 'red',
+        title: 'Thiếu thông tin',
+        message: 'Nhập tên, dán liên kết ảnh và chọn danh mục.',
+      });
+      return;
+    }
+    const imageError = getDirectImageUrlError(image.trim());
+    if (imageError) {
+      notifications.show({
+        color: 'red',
+        title: 'Link ảnh chưa đúng',
+        message: imageError,
+      });
+      return;
+    }
+    const p = typeof price === 'number' ? price : Number(price);
+    if (!Number.isFinite(p) || p < 0) {
+      notifications.show({
+        color: 'red',
+        title: 'Lỗi',
+        message: 'Giá không hợp lệ.',
+      });
+      return;
+    }
+
+    const body: CreateProductInput = {
+      name: name.trim(),
+      price: p,
+      image: image.trim(),
+      category: category as CreateProductInput['category'],
+      ...(description.trim() ? { description: description.trim() } : {}),
+    };
+
+    try {
+      await createProduct.mutateAsync(body);
+      notifications.show({
+        color: 'green',
+        title: 'Thành công',
+        message: 'Đã thêm sản phẩm.',
+      });
+      setName('');
+      setPrice('');
+      setImage('');
+      setCategory(PRODUCT_CATEGORY.FOOD);
+      setDescription('');
+      onSuccess();
+    } catch (e: unknown) {
+      notifications.show({
+        color: 'red',
+        title: 'Lỗi',
+        message: e instanceof Error ? e.message : 'Không thêm được sản phẩm.',
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <TextInput
+        label="Tên sản phẩm"
+        placeholder="Ví dụ: Bắp caramel"
+        value={name}
+        onChange={(e) => setName(e.currentTarget.value)}
+        styles={inputStyles}
+        labelProps={{ style: { color: '#c2c6d8' } }}
+        required
+      />
+      <NumberInput
+        label="Giá (VNĐ)"
+        placeholder="50000"
+        min={0}
+        thousandSeparator="."
+        decimalSeparator=","
+        value={price}
+        onChange={(v) => setPrice(typeof v === 'number' ? v : '')}
+        styles={inputStyles}
+        labelProps={{ style: { color: '#c2c6d8' } }}
+        required
+      />
+      <FoodProductImageField
+        value={image}
+        onChange={setImage}
+        category={category ?? undefined}
+        disabled={createProduct.isPending}
+      />
+      <Select
+        label="Danh mục"
+        data={categoryData}
+        value={category}
+        onChange={setCategory}
+        styles={inputStyles}
+        labelProps={{ style: { color: '#c2c6d8' } }}
+        required
+      />
+      <Textarea
+        label="Mô tả (tuỳ chọn)"
+        placeholder="Mô tả ngắn..."
+        value={description}
+        onChange={(e) => setDescription(e.currentTarget.value)}
+        minRows={2}
+        styles={inputStyles}
+        labelProps={{ style: { color: '#c2c6d8' } }}
+      />
+      <Button
+        fullWidth
+        loading={createProduct.isPending}
+        onClick={() => void handleSubmit()}
+        styles={{
+          root: { background: '#0066ff', fontWeight: 700 },
+        }}
+      >
+        Thêm sản phẩm
+      </Button>
+    </div>
+  );
+}
