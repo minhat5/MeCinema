@@ -1,0 +1,46 @@
+@startuml
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  ArrowColor #0F172A
+}
+
+title Activity - Quản lý food
+
+start
+:Admin vào module food;
+if (Đúng quyền Admin?) then (Có)
+  :Tải danh sách sản phẩm;
+else (Không)
+  :Chặn truy cập;
+  stop
+endif
+
+:Chọn kiểu hiển thị (sản phẩm lẻ / combo);
+:Xem danh sách và trạng thái kinh doanh;
+
+if (Chọn thêm mới?) then (Có)
+  :Nhập thông tin food/combo;
+  :Lưu dữ liệu;
+  if (Lưu thành công?) then (Có)
+    :Cập nhật danh sách;
+  else (Không)
+    :Thông báo lỗi;
+  endif
+elseif (Chọn chỉnh sửa?) then (Có)
+  :Mở chi tiết sản phẩm;
+  :Cập nhật thông tin;
+  if (Cập nhật thành công?) then (Có)
+    :Làm mới danh sách;
+  else (Không)
+    :Thông báo lỗi;
+  endif
+else (Ẩn sản phẩm)
+  :Xác nhận ẩn khỏi menu;
+  :Đánh dấu ngừng bán;
+  :Cập nhật trạng thái hiển thị;
+endif
+stop
+@enduml
+

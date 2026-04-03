@@ -1,0 +1,49 @@
+@startuml
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  ArrowColor #0F172A
+}
+
+title Activity - Quản lý thể loại
+
+start
+:Admin vào module quản lý thể loại;
+if (Đúng quyền Admin?) then (Có)
+  :Tải danh sách thể loại;
+else (Không)
+  :Chặn truy cập;
+  stop
+endif
+
+:Tìm kiếm và duyệt danh sách theo trang;
+
+if (Chọn thêm thể loại?) then (Có)
+  :Nhập tên thể loại;
+  if (Tên chưa tồn tại?) then (Có)
+    :Lưu thể loại mới;
+    :Thông báo thành công;
+  else (Không)
+    :Thông báo trùng tên;
+  endif
+elseif (Chọn sửa thể loại?) then (Có)
+  :Nhập tên mới;
+  if (Có thay đổi hợp lệ?) then (Có)
+    :Lưu cập nhật;
+    :Thông báo thành công;
+  else (Không)
+    :Thông báo không có thay đổi hoặc trùng tên;
+  endif
+else (Xóa thể loại)
+  :Xác nhận xóa;
+  if (Thể loại tồn tại?) then (Có)
+    :Xóa thể loại;
+    :Thông báo thành công;
+  else (Không)
+    :Thông báo không tìm thấy;
+  endif
+endif
+stop
+@enduml
+

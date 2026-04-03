@@ -1,0 +1,65 @@
+@startuml
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0F172A
+  LifeLineBorderColor #334155
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #334155
+}
+
+title Sequence - Xem, tìm kiếm phim
+
+actor Guest as "Khách"
+participant UI as "MoviesPage"
+participant Hook as "useNowShowing/useUpcoming/useMovies"
+participant API as "apiClient"
+participant Ctl as "MovieController"
+participant Svc as "MovieServiceImpl"
+database Repo as "MovieRepository"
+
+== Mở trang phim ==
+Guest -> UI: Vào /phim
+alt Có từ khóa search query
+  UI -> Hook: useMovies({search:q})
+  Hook -> API: GET /api/movie/search?q&page&size
+  API -> Ctl: getMovie(q,page,size)
+  Ctl -> Svc: searchAvailable(q,pageable)
+  Svc -> Repo: findAll(spec title + status=RELEASED)
+  Repo --> Svc: Page<Movie>
+  Svc --> Ctl: Page<Movie>
+  Ctl --> API: 200
+  API --> UI: Danh sách kết quả
+else Không có từ khóa
+  UI -> Hook: useNowShowing()/useUpcoming()
+  Hook -> API: GET /api/movie?page&size
+  API -> Ctl: getAll(page,size)
+  Ctl -> Svc: findAllAvailable(pageable)
+  Svc -> Repo: findByStatus(RELEASED,pageable)
+  Repo --> Svc: Page<Movie>
+  Svc --> Ctl: Page<Movie>
+  Ctl --> API: 200
+  API --> UI: Render tab Đang chiếu / Sắp chiếu
+end
+
+alt Có kết quả
+  UI --> Guest: Hiển thị grid phim
+  Guest -> UI: Chọn 1 phim
+  UI -> API: GET /api/movie/{id}
+  API -> Ctl: getMovie(id)
+  Ctl -> Svc: findById(id)
+  alt Không tìm thấy phim
+    Svc --> Ctl: EntityNotFoundException
+    Ctl --> API: 404
+    API --> UI: Báo lỗi không tìm thấy
+  else Tìm thấy
+    Svc -> Repo: findById(id)
+    Repo --> Svc: Movie
+    Svc --> Ctl: Movie
+    Ctl --> API: 200
+    API --> UI: Hiển thị trang chi tiết
+  end
+else Không có kết quả
+  UI --> Guest: Thông báo "Không có kết quả phù hợp"
+end
+@enduml
+

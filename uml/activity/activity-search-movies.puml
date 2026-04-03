@@ -1,0 +1,28 @@
+@startuml
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  ArrowColor #0F172A
+}
+
+title Activity - Xem, tìm kiếm phim
+
+start
+:Khách vào trang phim;
+if (Có từ khóa tìm kiếm?) then (Có)
+  :Tìm phim theo từ khóa;
+else (Không)
+  :Tải danh sách phim đang phát hành;
+  :Có thể chuyển nhóm phim sắp chiếu;
+endif
+
+if (Có kết quả?) then (Có)
+  :Hiển thị danh sách phim;
+  :Người dùng chọn phim để xem chi tiết;
+else (Không)
+  :Thông báo không có kết quả phù hợp;
+endif
+stop
+@enduml
+

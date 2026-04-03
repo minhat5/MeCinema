@@ -1,0 +1,49 @@
+@startuml
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  ArrowColor #0F172A
+}
+
+title Activity - Quản lý phim
+
+start
+:Admin vào module quản lý phim;
+if (Đúng quyền Admin?) then (Có)
+  :Tải danh sách phim tổng;
+else (Không)
+  :Chặn truy cập;
+  stop
+endif
+
+:Áp dụng bộ lọc (từ khóa, trạng thái, phân trang);
+
+if (Chọn thêm phim?) then (Có)
+  :Nhập thông tin phim;
+  if (Thông tin hợp lệ?) then (Có)
+    :Lưu phim mới;
+    :Làm mới danh sách;
+  else (Không)
+    :Thông báo lỗi dữ liệu;
+  endif
+elseif (Chọn sửa phim?) then (Có)
+  :Tải dữ liệu phim cần sửa;
+  if (Phim tồn tại?) then (Có)
+    :Lưu cập nhật;
+    :Làm mới danh sách;
+  else (Không)
+    :Thông báo không tìm thấy phim;
+  endif
+else (Xóa phim)
+  :Xác nhận xóa;
+  if (Phim tồn tại?) then (Có)
+    :Thực hiện xóa;
+    :Cập nhật danh sách;
+  else (Không)
+    :Thông báo không tìm thấy phim;
+  endif
+endif
+stop
+@enduml
+

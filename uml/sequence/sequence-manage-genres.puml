@@ -1,0 +1,112 @@
+@startuml
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0F172A
+  LifeLineBorderColor #334155
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #334155
+}
+
+title Sequence - Quản lý thể loại
+
+actor Admin
+participant UI as "ManageGenresPage"
+participant Hook as "useGenres hooks"
+participant API as "apiClient"
+participant Sec as "@PreAuthorize(ADMIN)"
+participant Ctl as "AdminGenreController"
+participant Svc as "GenreServiceImpl"
+database Repo as "GenreRepository"
+
+== Vào module + duyệt theo trang/tìm kiếm ==
+Admin -> UI: Mở /admin/genres
+UI -> Hook: useAdminGenres({page,search})
+alt Có từ khóa
+  Hook -> API: GET /api/genres/search?q&page&size
+else Không có từ khóa
+  Hook -> API: GET /api/genres?page&size
+end
+API -> Sec: Check ROLE_ADMIN
+alt Không đủ quyền
+  Sec --> API: 403
+  API --> UI: Chặn truy cập
+else Đủ quyền
+  Sec -> Ctl: getAllGenres/search
+  Ctl -> Svc: findAll(...) / search(...)
+  Svc -> Repo: findAll(spec,pageable)
+  Repo --> Svc: Page<Genre>
+  Svc --> Ctl: Page<Genre>
+  Ctl --> API: 200
+  API --> UI: Render danh sách
+end
+
+== Thêm thể loại ==
+Admin -> UI: Submit tên mới
+UI -> Hook: useCreateGenre(name)
+Hook -> API: POST /api/genres
+API -> Ctl: create(genre)
+Ctl -> Svc: create(genre)
+Svc -> Repo: existsByName(name)
+alt Tên đã tồn tại
+  Repo --> Svc: true
+  Svc --> Ctl: IllegalArgumentException
+  Ctl --> API: 400
+  API --> UI: Thông báo trùng tên
+else Hợp lệ
+  Repo --> Svc: false
+  Svc -> Repo: save(genre)
+  Repo --> Svc: Genre
+  Svc --> Ctl: Genre
+  Ctl --> API: 200
+  API --> UI: Thông báo thành công + refresh
+end
+
+== Sửa thể loại ==
+Admin -> UI: Sửa tên và lưu
+UI -> Hook: useUpdateGenre(id,name)
+Hook -> API: PUT /api/genres/{id}
+API -> Ctl: update(id,genre)
+Ctl -> Svc: update(id,genre)
+Svc -> Repo: findById(id)
+alt Không tìm thấy id
+  Repo --> Svc: empty
+  Svc --> Ctl: EntityNotFoundException
+  Ctl --> API: 404
+  API --> UI: Báo không tìm thấy
+else Tìm thấy
+  Repo --> Svc: Genre cũ
+  alt Không có thay đổi hoặc trùng tên
+    Svc --> Ctl: RuntimeException/IllegalArgumentException
+    Ctl --> API: 400
+    API --> UI: Báo không thể cập nhật
+  else Hợp lệ
+    Svc -> Repo: save(genre cập nhật)
+    Repo --> Svc: Genre
+    Svc --> Ctl: Genre
+    Ctl --> API: 200
+    API --> UI: Báo thành công
+  end
+end
+
+== Xóa thể loại ==
+Admin -> UI: Xác nhận xóa
+UI -> Hook: useDeleteGenre(id)
+Hook -> API: DELETE /api/genres/{id}
+API -> Ctl: delete(id)
+Ctl -> Svc: delete(id)
+Svc -> Repo: existsById(id)
+alt Không tồn tại
+  Repo --> Svc: false
+  Svc --> Ctl: EntityNotFoundException
+  Ctl --> API: 404
+  API --> UI: Báo không tìm thấy
+else Tồn tại
+  Repo --> Svc: true
+  Svc -> Repo: deleteById(id)
+  Repo --> Svc: done
+  Svc --> Ctl: done
+  Ctl --> API: 200
+  API --> UI: Báo xóa thành công
+end
+@enduml
+
