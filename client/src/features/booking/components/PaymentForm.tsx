@@ -8,49 +8,53 @@ import {
   Group,
   Divider,
   Button,
+  ThemeIcon,
+  Box,
 } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { usePayment } from '../hooks/usePayment';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '@/lib/api-client';
 import { notifications } from '@mantine/notifications';
+import { IconClockX } from '@tabler/icons-react';
+
 type Props = {
   bookingId: string;
   totalPrice: number;
+  isExpired?: boolean;
 };
 
-export function PaymentForm({ bookingId, totalPrice }: Props) {
+export function PaymentForm({ bookingId, totalPrice, isExpired = false }: Props) {
   const [qrUrl, setQrUrl] = useState('');
-  const [transactionNo, setTransactionNo] = useState('');
-  const [paymentId, setPaymentId] = useState('');
   const [isRedirecting, setIsRedirecting] = useState(false);
   const navigate = useNavigate();
   const { mutate: pay, isPending } = usePayment();
 
   const generateQRCode = () => {
+    if (isExpired) return;
     pay(bookingId, {
       onSuccess: (res) => {
         setQrUrl(res.data.paymentUrl);
-        setTransactionNo(res.data.transactionNo);
-        setPaymentId(res.data.paymentId);
       },
     });
   };
 
   useEffect(() => {
-    if (bookingId && !qrUrl && !isPending) {
+    if (bookingId && !qrUrl && !isPending && !isExpired) {
       generateQRCode();
     }
-  }, [bookingId, qrUrl, isPending]);
+  }, [bookingId, qrUrl, isPending, isExpired]);
 
+  // Dừng polling khi đã hết hạn
   useEffect(() => {
-    if (!qrUrl || isRedirecting) return;
+    if (!qrUrl || isRedirecting || isExpired) return;
 
     const interval = setInterval(() => {
-      // Auto polling to check if payment is confirmed with a cache-buster
-      apiClient.get(`/bookings/${bookingId}/payments/status?t=${Date.now()}`)
-        .then((isSuccess) => {
-          if (isSuccess) {
+      apiClient
+        .get(`/bookings/${bookingId}/payments/status?t=${Date.now()}`)
+        .then((res) => {
+          const isSuccess = (res as any).data ?? res;
+          if (isSuccess === true) {
             clearInterval(interval);
             setIsRedirecting(true);
             notifications.show({
@@ -63,16 +67,18 @@ export function PaymentForm({ bookingId, totalPrice }: Props) {
             }, 1000);
           }
         })
-        .catch(() => {}); // Ignore errors during background polling
-    }, 5000); // Check every 5 seconds
+        .catch(() => {});
+    }, 5000);
 
     return () => clearInterval(interval);
-  }, [bookingId, qrUrl, isRedirecting, navigate]);
+  }, [bookingId, qrUrl, isRedirecting, navigate, isExpired]);
 
   const handleManualConfirm = () => {
     setIsRedirecting(true);
-    apiClient.get(`/bookings/${bookingId}/payments/status?t=${Date.now()}`)
-      .then((isSuccess) => {
+    apiClient
+      .get(`/bookings/${bookingId}/payments/status?t=${Date.now()}`)
+      .then((res) => {
+        const isSuccess = (res as any).data ?? res;
         if (isSuccess === true) {
           notifications.show({
             title: 'Thành công',
@@ -86,7 +92,8 @@ export function PaymentForm({ bookingId, totalPrice }: Props) {
           setIsRedirecting(false);
           notifications.show({
             title: 'Chưa nhận được thanh toán',
-            message: 'Hệ thống chưa ghi nhận giao dịch. Lý do có thể do nội dung chuyển khoản sai hoặc bạn chưa chuyển khoản !',
+            message:
+              'Hệ thống chưa ghi nhận giao dịch. Vui lòng kiểm tra nội dung chuyển khoản!',
             color: 'red',
           });
         }
@@ -101,7 +108,56 @@ export function PaymentForm({ bookingId, totalPrice }: Props) {
       });
   };
 
+  // ── UI HẾT HẠN ────────────────────────────────────────────────
+  if (isExpired) {
+    return (
+      <Paper
+        p="xl"
+        radius="lg"
+        bg="#0f172a"
+        ta="center"
+        style={{ border: '2px solid #475569', color: 'white', minHeight: 400 }}
+      >
+        <Stack align="center" gap="xl" h="100%" justify="center" py="xl">
+          <ThemeIcon size={80} radius="xl" color="gray.7" variant="filled">
+            <IconClockX size={44} />
+          </ThemeIcon>
 
+          <Box>
+            <Title order={3} c="gray.3" mb="xs">
+              Đơn hàng đã hết hạn
+            </Title>
+            <Text c="gray.5" size="sm" maw={320} mx="auto">
+              Thời gian giữ ghế của bạn đã hết. Đơn hàng này đã bị hủy tự
+              động và ghế đã được nhả ra.
+            </Text>
+          </Box>
+
+          <Stack gap="sm" w="100%">
+            <Button
+              color="yellow"
+              size="md"
+              radius="md"
+              fullWidth
+              onClick={() => navigate('/phim')}
+            >
+              Chọn suất chiếu khác
+            </Button>
+            <Button
+              variant="subtle"
+              color="gray"
+              size="sm"
+              onClick={() => navigate('/')}
+            >
+              Về trang chủ
+            </Button>
+          </Stack>
+        </Stack>
+      </Paper>
+    );
+  }
+
+  // ── UI BÌNH THƯỜNG ─────────────────────────────────────────────
   return (
     <Paper
       p="xl"
@@ -173,17 +229,13 @@ export function PaymentForm({ bookingId, totalPrice }: Props) {
                     onClick={generateQRCode}
                     loading={isPending}
                   >
-                    Mã lỗi/Giao dịch nghi ngờ? Tạo lại mã thanh toán (Thử lại)
+                    Mã lỗi/Giao dịch nghi ngờ? Tạo lại mã thanh toán
                   </Button>
                 </Stack>
               )}
             </Stack>
 
-            <Divider
-              w="100%"
-              color="gray.8"
-              style={{ borderStyle: 'dashed' }}
-            />
+            <Divider w="100%" color="gray.8" style={{ borderStyle: 'dashed' }} />
 
             <Text size="xs" c="gray.6">
               Vui lòng nhấn xác nhận sau khi quét mã thành công.

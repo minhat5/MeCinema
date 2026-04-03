@@ -1,4 +1,5 @@
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
+import { useState } from 'react';
 import {
   Container,
   Grid,
@@ -20,7 +21,9 @@ import { BookingTimer } from '../components/BookingTimer';
 export default function BookingConfirmPage() {
   const { bookingId } = useParams();
   const { data: booking, isLoading } = useBookingDetail(bookingId!);
-  const navigate = useNavigate();
+  const [isExpired, setIsExpired] = useState(false);
+
+
   if (isLoading || !booking) {
     return (
       <Center h="70vh" bg="#020617">
@@ -28,14 +31,17 @@ export default function BookingConfirmPage() {
       </Center>
     );
   }
+
   const handleExpire = () => {
+    setIsExpired(true);
     notifications.show({
-      title: 'Đơn hàng đã hết hạn',
-      message: 'Bạn đã quá thời gian thanh toán, vui lòng đặt lại vé!',
+      title: '⏰ Đơn hàng đã hết hạn',
+      message: 'Bạn đã quá thời gian thanh toán. Ghế đã được nhả ra tự động.',
       color: 'red',
+      autoClose: 8000,
     });
-    navigate('/phim');
   };
+
   return (
     <Box bg="slate.950" mih="100vh" py="xl">
       <Container size="xl">
@@ -51,19 +57,26 @@ export default function BookingConfirmPage() {
         <Title order={2} c="white" mb="xl">
           Xác nhận đơn hàng
         </Title>
-        <Box w={200} mb="xl">
-          <BookingTimer
-            expiresAt={
-              new Date(new Date(booking.createdAt).getTime() + 10 * 60 * 1000)
-            }
-            onExpire={handleExpire}
-          />
-        </Box>
+
+        {!isExpired && (
+          <Box w={200} mb="xl">
+            <BookingTimer
+              expiresAt={
+                new Date(
+                  new Date(booking.createdAt).getTime() + 2 * 60 * 1000,
+                )
+              }
+              onExpire={handleExpire}
+            />
+          </Box>
+        )}
+
         <Grid gutter="xl">
           <Grid.Col span={{ base: 12, md: 7 }}>
             <PaymentForm
               bookingId={booking._id}
               totalPrice={booking.totalPrice}
+              isExpired={isExpired}
             />
           </Grid.Col>
 
@@ -74,7 +87,14 @@ export default function BookingConfirmPage() {
                   roomId: RoomType;
                 }
               }
-              selectedSeats={new Map(booking.seats.map((s) => [s.seatId, s]))}
+              selectedSeats={
+                new Map(
+                  ((booking as any).seats ?? []).map((s: any) => [
+                    s.seatId,
+                    s,
+                  ]),
+                )
+              }
               totalPrice={booking.totalPrice}
               isPending={false}
               onConfirm={() => {}}

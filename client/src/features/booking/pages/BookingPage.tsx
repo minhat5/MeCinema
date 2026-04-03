@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useReducer } from 'react';
+import { useReducer, useEffect, useRef } from 'react';
 import {
   Container,
   Grid,
@@ -30,6 +30,31 @@ const BookingPage = () => {
   const { mutate: createBooking, isPending } = useCreateBooking();
   const [state, dispatch] = useReducer(seatReducer, initialSeatState);
 
+  // Khi seatMap refetch và phát hiện ghế mình đang chọn đã bị người khác đặt → tự động bỏ chọn + cảnh báo
+  const prevBookedRef = useRef<string[]>([]);
+  useEffect(() => {
+    const currentBooked = data?.bookedSeatIds ?? [];
+    const prevBooked = prevBookedRef.current;
+
+    // Tìm những ghế MỚI bị đặt (chưa có ở lần refetch trước)
+    const newlyBooked = currentBooked.filter((id) => !prevBooked.includes(id));
+    prevBookedRef.current = currentBooked;
+
+    if (newlyBooked.length === 0) return;
+
+    // Lọc ra những ghế người dùng đang chọn mà bị đặt mất
+    const conflictSeats = newlyBooked.filter((id) => state.selectedSeats.has(id));
+    if (conflictSeats.length === 0) return;
+
+    dispatch({ type: 'REMOVE_INVALID_SEATS', payload: conflictSeats });
+    notifications.show({
+      title: '⚠️ Ghế vừa bị đặt bởi người khác',
+      message: `${conflictSeats.length} ghế bạn đang chọn đã bị người khác đặt và đã được bỏ chọn tự động. Vui lòng chọn lại!`,
+      color: 'orange',
+      autoClose: 6000,
+    });
+  }, [data?.bookedSeatIds]);
+
   if (isLoading || !data?.showtime) {
     return (
       <Center style={{ height: '70vh', backgroundColor: '#020617' }}>
@@ -47,6 +72,31 @@ const BookingPage = () => {
   const seats = room.seats ?? [];
 
   const handleConfirm = () => {
+    // Lọc bỏ ghế đã bị đặt trước khi gửi (bảo vệ thêm 1 lớp phía client)
+    const currentBooked = new Set(data?.bookedSeatIds ?? []);
+    const conflictSeats = Array.from(state.selectedSeats.keys()).filter((id) =>
+      currentBooked.has(id),
+    );
+    if (conflictSeats.length > 0) {
+      dispatch({ type: 'REMOVE_INVALID_SEATS', payload: conflictSeats });
+      notifications.show({
+        title: '⚠️ Ghế không còn trống',
+        message: 'Một số ghế bạn chọn vừa được người khác đặt. Vui lòng kiểm tra lại lựa chọn!',
+        color: 'orange',
+        autoClose: 5000,
+      });
+      return;
+    }
+
+    if (state.selectedSeats.size === 0) {
+      notifications.show({
+        title: 'Chưa chọn ghế',
+        message: 'Vui lòng chọn ít nhất 1 ghế trước khi xác nhận.',
+        color: 'red',
+      });
+      return;
+    }
+
     createBooking(
       {
         showtimeId: showtimeId!,
@@ -55,6 +105,19 @@ const BookingPage = () => {
       {
         onSuccess: (res) => {
           navigate(`/booking/confirm/${res.data._id}`);
+        },
+        onError: (error: any) => {
+          // Làm mới lại seatMap ngay lập tức để cập nhật trạng thái ghế
+          const message =
+            error?.response?.data?.message ||
+            error?.message ||
+            'Đặt vé thất bại. Ghế này có thể vừa được người khác đặt xong.';
+          notifications.show({
+            title: '❌ Đặt vé không thành công',
+            message,
+            color: 'red',
+            autoClose: 6000,
+          });
         },
       },
     );
