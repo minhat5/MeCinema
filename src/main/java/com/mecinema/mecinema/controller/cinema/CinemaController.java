@@ -1,26 +1,21 @@
-package com.mecinema.mecinema.controller.admin;
+package com.mecinema.mecinema.controller.cinema;
 
 import com.mecinema.mecinema.exception.CinemaNotFoundException;
 import com.mecinema.mecinema.model.dto.cinema.CinemaApiResponse;
-import com.mecinema.mecinema.model.dto.cinema.CinemaRequest;
-import com.mecinema.mecinema.model.dto.cinema.UpdateCinemaRequest;
 import com.mecinema.mecinema.service.CinemaService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/cinemas")
+@RequestMapping("/api/movie/cinemas")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
-public class AdminCinemaController {
+public class CinemaController {
 
     private final CinemaService cinemaService;
 
@@ -73,54 +68,6 @@ public class AdminCinemaController {
                     .body(CinemaApiResponse.internalError("Error searching cinemas: " + e.getMessage()));
         }
     }
-
-    @PostMapping
-    public ResponseEntity<?> createCinema(@Valid @RequestBody CinemaRequest request) {
-        try {
-            log.info("Creating cinema: {}", request.getName());
-            var createdCinema = cinemaService.create(request);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(CinemaApiResponse.created(createdCinema, "Cinema created successfully"));
-        } catch (Exception e) {
-            log.error("Error creating cinema", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(CinemaApiResponse.badRequest("Error creating cinema: " + e.getMessage()));
-        }
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateCinema(
-            @PathVariable Long id,
-            @Valid @RequestBody UpdateCinemaRequest request) {
-        try {
-            log.info("Updating cinema with id: {}", id);
-            var updatedCinema = cinemaService.update(id, request);
-            return ResponseEntity.ok(CinemaApiResponse.success(updatedCinema, "Cinema updated successfully"));
-        } catch (CinemaNotFoundException e) {
-            log.warn("Cinema not found with id: {}", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(CinemaApiResponse.notFound(e.getMessage()));
-        } catch (Exception e) {
-            log.error("Error updating cinema", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(CinemaApiResponse.badRequest("Error updating cinema: " + e.getMessage()));
-        }
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCinema(@PathVariable Long id) {
-        try {
-            log.info("Deleting cinema with id: {}", id);
-            cinemaService.delete(id);
-            return ResponseEntity.ok(CinemaApiResponse.success(null, "Cinema deleted successfully"));
-        } catch (CinemaNotFoundException e) {
-            log.warn("Cinema not found with id: {}", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(CinemaApiResponse.notFound(e.getMessage()));
-        } catch (Exception e) {
-            log.error("Error deleting cinema", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(CinemaApiResponse.internalError("Error deleting cinema: " + e.getMessage()));
-        }
-    }
 }
+
+
