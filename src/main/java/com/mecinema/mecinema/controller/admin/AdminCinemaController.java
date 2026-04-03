@@ -40,23 +40,6 @@ public class AdminCinemaController {
         }
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getCinemaById(@PathVariable Long id) {
-        try {
-            log.info("Fetching cinema with id: {}", id);
-            var cinema = cinemaService.findById(id);
-            return ResponseEntity.ok(CinemaApiResponse.success(cinema, "Cinema retrieved successfully"));
-        } catch (CinemaNotFoundException e) {
-            log.warn("Cinema not found with id: {}", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(CinemaApiResponse.notFound(e.getMessage()));
-        } catch (Exception e) {
-            log.error("Error fetching cinema", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(CinemaApiResponse.internalError("Error fetching cinema: " + e.getMessage()));
-        }
-    }
-
     @GetMapping("/search")
     public ResponseEntity<?> searchCinemas(
             @RequestParam String q,
@@ -71,6 +54,23 @@ public class AdminCinemaController {
             log.error("Error searching cinemas", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(CinemaApiResponse.internalError("Error searching cinemas: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getCinemaById(@PathVariable Long id) {
+        try {
+            log.info("Fetching cinema with id: {}", id);
+            var cinema = cinemaService.findById(id);
+            return ResponseEntity.ok(CinemaApiResponse.success(cinema, "Cinema retrieved successfully"));
+        } catch (CinemaNotFoundException e) {
+            log.warn("Cinema not found with id: {}", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(CinemaApiResponse.notFound(e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error fetching cinema", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(CinemaApiResponse.internalError("Error fetching cinema: " + e.getMessage()));
         }
     }
 

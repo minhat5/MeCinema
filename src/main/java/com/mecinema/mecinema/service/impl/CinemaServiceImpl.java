@@ -38,7 +38,7 @@ public class CinemaServiceImpl implements CinemaService {
         return cinemaRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Cinema not found with id: {}", id);
-                    return new CinemaNotFoundException(id);
+                    return new CinemaNotFoundException("Cinema not found with id: " + id);
                 });
     }
 
@@ -76,4 +76,3 @@ public class CinemaServiceImpl implements CinemaService {
         return cinemaRepository.findByNameContainingIgnoreCase(keyword, pageable);
     }
 }
-

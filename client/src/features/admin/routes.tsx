@@ -4,6 +4,7 @@ import ManageFoodPage from './food/pages/ManageFoodPage';
 import { ManageGenresPage } from './genres/pages';
 import { ManageShowtimesPage } from './showtimes/pages';
 import ManageRoomsPage from './rooms/pages/ManageRoomsPage';
+import { ManageCinemasPage } from './cinemas/pages';
 
 const DashboardPage = () => <div>Dashboard dang duoc hoan thien</div>;
 const ManageBookingsPage = () => <div>Quan ly dat ve dang duoc hoan thien</div>;
@@ -17,6 +18,12 @@ export const adminRoutes = [
         element: <DashboardPage />,
         name: 'Dashboard',
         icon: 'BarChart3',
+      },
+      {
+        path: 'cinemas',
+        element: <ManageCinemasPage />,
+        name: 'Quản lý cụm rạp',
+        icon: 'Building2',
       },
       {
         path: 'movies',
