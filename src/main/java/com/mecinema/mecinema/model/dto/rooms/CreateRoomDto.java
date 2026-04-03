@@ -1,4 +1,4 @@
-package com.mecinema.mecinema.model.dto;
+package com.mecinema.mecinema.model.dto.rooms;
 
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;

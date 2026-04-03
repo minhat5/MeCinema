@@ -1,8 +1,8 @@
 package com.mecinema.mecinema.service;
 
-import com.mecinema.mecinema.model.dto.CreateRoomDto;
-import com.mecinema.mecinema.model.dto.RoomDto;
-import com.mecinema.mecinema.model.dto.UpdateRoomDto;
+import com.mecinema.mecinema.model.dto.rooms.CreateRoomDto;
+import com.mecinema.mecinema.model.dto.rooms.RoomDto;
+import com.mecinema.mecinema.model.dto.rooms.UpdateRoomDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

@@ -1,4 +1,4 @@
-package com.mecinema.mecinema.model.dto;
+package com.mecinema.mecinema.model.dto.showtimes;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
