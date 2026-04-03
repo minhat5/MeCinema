@@ -1,0 +1,80 @@
+@startuml
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0F172A
+  LifeLineBorderColor #334155
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #334155
+}
+
+title Sequence - Quản lý hồ sơ
+
+actor Member as "Thành viên"
+participant UI as "ProfileInfoPage + ProtectedRoute"
+participant Hook as "useAuth + useMutation(updateMeApi)"
+participant API as "apiClient"
+participant UserCtl as "UserController"
+participant UserSvc as "UserServiceImpl"
+database UserRepo as "UserRepository"
+
+== Vào trang hồ sơ ==
+Member -> UI: Truy cập /member hoặc /infor
+UI -> Hook: useCurrentUser()
+Hook -> API: GET /api/user/me
+API -> UserCtl: me(authentication)
+UserCtl -> UserSvc: authed(authentication)
+alt Chưa đăng nhập
+  UserSvc --> UserCtl: SecurityException
+  UserCtl --> API: 400
+  API --> UI: Redirect /login
+else Đã đăng nhập
+  UserSvc -> UserRepo: findByEmail(authentication.name)
+  UserRepo --> UserSvc: User
+  UserSvc --> UserCtl: User
+  UserCtl --> API: 200
+  API --> UI: Hiển thị thông tin profile
+end
+
+== Cập nhật thông tin cá nhân ==
+Member -> UI: Submit họ tên/số điện thoại/avatar
+UI -> Hook: updateMeApi(payload)
+Hook -> API: GET /api/user/me (lấy id hiện tại)
+API -> UserCtl: me(authentication)
+UserCtl -> UserSvc: authed(authentication)
+UserSvc -> UserRepo: findByEmail(...)
+UserRepo --> UserSvc: User(me)
+UserSvc --> UserCtl: User(me)
+UserCtl --> API: 200 User(me)
+Hook -> API: PUT /api/user/{id}
+API -> UserCtl: update(authentication,id,UpdateUserRequest)
+UserCtl -> UserSvc: saveUser(authentication,id,request)
+UserSvc -> UserSvc: authed(authentication)
+alt id khác user đang đăng nhập
+  UserSvc --> UserCtl: SecurityException
+  UserCtl --> API: 400
+  API --> UI: Thông báo không đủ quyền
+else Đúng chủ tài khoản
+  UserSvc -> UserRepo: findById(id)
+  alt Không tìm thấy user
+    UserRepo --> UserSvc: empty
+    UserSvc --> UserCtl: EntityNotFoundException
+    UserCtl --> API: 404
+    API --> UI: Thông báo không tìm thấy
+  else Tìm thấy
+    UserRepo --> UserSvc: User
+    UserSvc -> UserRepo: save(fullName, phone)
+    UserRepo --> UserSvc: User
+    UserSvc --> UserCtl: User
+    UserCtl --> API: 200
+    API --> UI: Báo cập nhật thành công + invalidate ['me']
+  end
+end
+
+== Đăng xuất ==
+Member -> UI: Bấm Đăng xuất
+UI -> Hook: useLogout.mutate()
+Hook -> Hook: localStorage.removeItem('accessToken')
+Hook -> Hook: queryClient.clear()
+Hook --> UI: navigate('/login')
+@enduml
+

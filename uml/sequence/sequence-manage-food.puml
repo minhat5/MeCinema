@@ -1,0 +1,105 @@
+@startuml
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0F172A
+  LifeLineBorderColor #334155
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #334155
+}
+
+title Sequence - Quản lý food
+
+actor Admin
+participant UI as "ManageFoodPage"
+participant Hook as "useFoodCRUD hooks"
+participant API as "apiClient"
+participant Sec as "Spring Security + @PreAuthorize"
+participant Ctl as "AdminFoodController"
+participant Svc as "FoodServiceImpl"
+database Repo as "FoodRepository"
+
+== Mở module + tải danh sách ==
+Admin -> UI: Vào /admin/food
+UI -> Hook: useAdminProducts(page,size,kind)
+Hook -> API: GET /api/foods?page&size
+API -> Sec: Check JWT + ROLE_ADMIN
+alt Không phải Admin
+  Sec --> API: 403 Forbidden
+  API --> UI: Chặn truy cập
+else Đủ quyền
+  Sec -> Ctl: getAll(page,size)
+  Ctl -> Svc: findAll(pageable)
+  Svc -> Repo: findAll(pageable)
+  Repo --> Svc: Page<Food>
+  Svc --> Ctl: Page<Food>
+  Ctl --> API: 200 content
+  API --> Hook: data
+  Hook --> UI: render list + filter local (retail/combo)
+end
+
+== Thêm mới food/combo ==
+Admin -> UI: Submit form thêm mới
+UI -> Hook: useCreateProduct/useCreateCombo
+Hook -> API: POST /api/foods
+API -> Sec: Check ROLE_ADMIN
+Sec -> Ctl: create(food)
+Ctl -> Svc: create(food)
+Svc -> Repo: save(food)
+alt Dữ liệu lỗi
+  Repo --> Svc: throw exception
+  Svc --> Ctl: exception
+  Ctl --> API: 400 Bad Request
+  API --> UI: Thông báo lỗi
+else Thành công
+  Repo --> Svc: Food
+  Svc --> Ctl: Food
+  Ctl --> API: 200
+  API --> Hook: success
+  Hook --> UI: invalidate ['admin-food-products']
+  UI --> Admin: Danh sách được cập nhật
+end
+
+== Chỉnh sửa food/combo ==
+Admin -> UI: Chọn sửa và lưu
+UI -> Hook: useUpdateProduct.mutate(id, body)
+Hook -> API: PUT /api/foods/{id}
+API -> Sec: Check ROLE_ADMIN
+Sec -> Ctl: update(id, food)
+Ctl -> Svc: update(id, food)
+Svc -> Repo: findById(id)
+alt Không tìm thấy sản phẩm
+  Repo --> Svc: empty
+  Svc --> Ctl: EntityNotFoundException
+  Ctl --> API: 404
+  API --> UI: Thông báo không tìm thấy
+else Tìm thấy
+  Repo --> Svc: Food
+  Svc -> Repo: save(updatedFood)
+  Repo --> Svc: Food
+  Svc --> Ctl: Food
+  Ctl --> API: 200
+  API --> Hook: success
+  Hook --> UI: refresh list/detail
+end
+
+== Ẩn sản phẩm khỏi menu ==
+Admin -> UI: Bấm "Ẩn"
+UI -> Hook: useDeactivateProduct(id)
+Hook -> API: GET /api/foods/{id}
+API -> Ctl: getFood(id)
+Ctl -> Svc: findById(id)
+Svc -> Repo: findById(id)
+Repo --> Svc: Food
+Svc --> Ctl: Food
+Ctl --> API: 200
+Hook -> API: PUT /api/foods/{id} (isActive=false)
+API -> Ctl: update(id, food)
+Ctl -> Svc: update(id, food)
+Svc -> Repo: save(food.isActive=false)
+Repo --> Svc: Food
+Svc --> Ctl: Food
+Ctl --> API: 200
+API --> UI: success
+UI --> Admin: Hiển thị trạng thái "Ẩn"
+@enduml
+

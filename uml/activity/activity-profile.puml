@@ -1,0 +1,42 @@
+@startuml
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  ArrowColor #0F172A
+}
+
+title Activity - Quản lý hồ sơ
+
+start
+:Thành viên vào trang hồ sơ;
+if (Đã đăng nhập?) then (Có)
+  :Tải thông tin cá nhân;
+else (Không)
+  :Chuyển sang Đăng nhập;
+  stop
+endif
+
+:Hiển thị thông tin tài khoản;
+if (Chọn cập nhật thông tin?) then (Có)
+  :Nhập họ tên, số điện thoại,
+  đường dẫn avatar;
+  :Gửi yêu cầu cập nhật;
+  if (Được phép cập nhật?) then (Có)
+    :Lưu thay đổi;
+    :Làm mới dữ liệu hồ sơ;
+    :Thông báo thành công;
+  else (Không)
+    :Thông báo không đủ quyền hoặc lỗi dữ liệu;
+  endif
+else (Không)
+  :Giữ nguyên thông tin hiện tại;
+endif
+
+if (Chọn đăng xuất?) then (Có)
+  :Xóa phiên đăng nhập;
+  :Chuyển về Đăng nhập;
+endif
+stop
+@enduml
+

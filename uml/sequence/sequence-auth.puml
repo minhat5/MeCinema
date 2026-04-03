@@ -1,0 +1,103 @@
+@startuml
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0F172A
+  LifeLineBorderColor #334155
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #334155
+}
+
+title Sequence - Đăng nhập, Đăng ký, Phân quyền
+
+actor User as "Người dùng"
+participant UI as "Login/Register + ProtectedRoute"
+participant Hook as "useLogin/useRegister/useCurrentUser"
+participant API as "apiClient"
+participant AuthCtl as "AuthController"
+participant AuthSvc as "AuthServiceImpl"
+participant UserSvc as "UserServiceImpl"
+participant AuthMgr as "AuthenticationManager"
+participant JwtSvc as "JwtService"
+database UserRepo as "UserRepository"
+database RoleRepo as "RoleRepository"
+
+== Kiểm tra phiên khi vào route bảo vệ ==
+User -> UI: Truy cập /admin hoặc /member
+UI -> Hook: useCurrentUser()
+Hook -> API: GET /api/user/me (Bearer token)
+API -> UserSvc: authed(authentication)
+UserSvc -> UserRepo: findByEmail(authentication.name)
+UserRepo --> UserSvc: User
+UserSvc --> API: 200 User
+API --> Hook: User
+Hook --> UI: user + role
+
+alt Có quyền phù hợp
+  UI --> User: Hiển thị trang được yêu cầu
+else Không có token hoặc sai quyền
+  UI --> User: Redirect /login hoặc /
+end
+
+== Đăng ký ==
+User -> UI: Gửi form đăng ký
+UI -> Hook: useRegister.mutate(payload)
+Hook -> API: POST /api/auth/register
+API -> AuthCtl: register(RegisterReq)
+AuthCtl -> AuthSvc: register(registerReq)
+AuthSvc -> UserRepo: existsByEmail(email)
+alt Email đã tồn tại
+  UserRepo --> AuthSvc: true
+  AuthSvc --> AuthCtl: throw RuntimeException
+  AuthCtl --> API: 400
+  API --> UI: Hiển thị lỗi
+else Hợp lệ
+  UserRepo --> AuthSvc: false
+  AuthSvc -> RoleRepo: findByName(CUSTOMER)
+  RoleRepo --> AuthSvc: Role
+  AuthSvc -> UserRepo: save(new User)
+  UserRepo --> AuthSvc: User
+  AuthSvc --> AuthCtl: OK
+  AuthCtl --> API: 200
+  Hook -> API: POST /api/auth/login (auto login)
+  API -> AuthCtl: login(LoginReq)
+  AuthCtl -> AuthSvc: login(loginReq)
+  AuthSvc -> AuthMgr: authenticate(email, password)
+  AuthMgr --> AuthSvc: Authentication
+  AuthSvc -> UserRepo: findByEmail(email)
+  UserRepo --> AuthSvc: User
+  AuthSvc -> JwtSvc: generate(subject, claims)
+  JwtSvc --> AuthSvc: token
+  AuthSvc --> AuthCtl: AuthRes(token)
+  AuthCtl --> API: 200 + Set-Cookie AUTH_TOKEN
+  API --> Hook: success
+  Hook --> UI: lưu accessToken marker + invalidate ["me"]
+  UI --> User: Điều hướng về trang chính
+end
+
+== Đăng nhập ==
+User -> UI: Gửi form đăng nhập
+UI -> Hook: useLogin.mutate(credentials)
+Hook -> API: POST /api/auth/login
+API -> AuthCtl: login(LoginReq)
+AuthCtl -> AuthSvc: login(loginReq)
+AuthSvc -> AuthMgr: authenticate(...)
+alt Sai thông tin
+  AuthMgr --> AuthSvc: throw exception
+  AuthSvc --> AuthCtl: exception
+  AuthCtl --> API: 400/401
+  API --> UI: Thông báo đăng nhập thất bại
+else Thành công
+  AuthMgr --> AuthSvc: Authentication
+  AuthSvc -> UserRepo: findByEmail(email)
+  UserRepo --> AuthSvc: User
+  AuthSvc -> JwtSvc: generate(...)
+  JwtSvc --> AuthSvc: token
+  AuthSvc --> AuthCtl: AuthRes(token)
+  AuthCtl --> API: 200 + Set-Cookie
+  API --> Hook: success
+  Hook --> UI: set localStorage(accessToken/COOKIE_AUTH)
+  UI -> Hook: invalidate ["me"] để nạp role
+  UI --> User: Điều hướng Admin/Member theo role
+end
+@enduml
+

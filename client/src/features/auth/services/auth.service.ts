@@ -46,7 +46,7 @@ export const getMeApi = (): Promise<User> =>
         : response;
 
     if (!rawUser || typeof rawUser !== 'object') {
-      throw new Error('Khong lay duoc thong tin nguoi dung');
+      throw new Error('Dữ liệu người dùng không hợp lệ');
     }
 
     return normalizeUser(rawUser as User);
@@ -58,7 +58,7 @@ export const updateMeApi = (
   getMeApi().then((me) => {
     const id = me?.id;
     if (!id) {
-      throw new Error('Khong tim thay ID nguoi dung de cap nhat ho so');
+      throw new Error('Không tìm thấy thông tin người dùng hiện tại');
     }
 
     return apiClient.put(`/user/${id}`, {
