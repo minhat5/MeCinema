@@ -2,6 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { adminRoutes } from '../../features/admin/routes';
 import {
 BarChart3,
+  CalendarDays,
   Users,
   Trophy,
   Film,
@@ -17,6 +18,7 @@ import { useAuth } from '../../hooks/useAuth';
 
 const iconMap = {
 BarChart3,
+  CalendarDays,
   Users,
   Trophy,
   Film,

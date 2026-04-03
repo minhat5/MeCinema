@@ -2,6 +2,7 @@ import { UsersPage } from './users/pages';
 import { ManageMoviesPage } from './movies/pages';
 import ManageFoodPage from './food/pages/ManageFoodPage';
 import { ManageGenresPage } from './genres/pages';
+import { ManageShowtimesPage } from './showtimes/pages';
 
 const DashboardPage = () => <div>Dashboard dang duoc hoan thien</div>;
 const ManageRoomsPage = () => <div>Quan ly phong chieu dang duoc hoan thien</div>;
@@ -28,6 +29,12 @@ export const adminRoutes = [
         element: <ManageGenresPage />,
         name: 'Quản lý thể loại',
         icon: 'Trophy',
+      },
+      {
+        path: 'showtimes',
+        element: <ManageShowtimesPage />,
+        name: 'Quản lý suất chiếu',
+        icon: 'CalendarDays',
       },
       {
         path: 'rooms',
