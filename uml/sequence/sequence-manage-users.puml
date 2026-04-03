@@ -1,0 +1,131 @@
+@startuml
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0F172A
+  LifeLineBorderColor #334155
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #334155
+}
+
+title Sequence - Quản lý user
+
+actor Admin
+participant UI as "UsersPage + UserForm"
+participant Hook as "useUsers hooks"
+participant API as "apiClient"
+participant Sec as "Security + @PreAuthorize"
+participant Ctl as "AdminUserController"
+participant Svc as "UserServiceImpl"
+participant RoleSvc as "RoleService"
+database UserRepo as "UserRepository"
+database RoleRepo as "RoleRepository"
+
+== Tải danh sách + tìm kiếm/lọc role ==
+Admin -> UI: Mở /admin/users
+UI -> Hook: useUsers({search,role,page})
+alt Có search
+  Hook -> API: GET /api/users/search?q&page&size
+else Có role filter
+  Hook -> API: GET /api/users/role/{role}?page&size
+else Mặc định
+  Hook -> API: GET /api/users?page&size
+end
+API -> Sec: Check ROLE_ADMIN
+alt Không đủ quyền
+  Sec --> API: 403
+  API --> UI: Chặn truy cập
+else Đủ quyền
+  Sec -> Ctl: search/getByRole/getAll
+  Ctl -> Svc: findByKeyword / findByRole / findAll
+  Svc -> UserRepo: findAll(spec,pageable)
+  UserRepo --> Svc: Page<User>
+  Svc --> Ctl: Page<User>
+  Ctl --> API: 200
+  API --> UI: render bảng
+end
+
+== Tạo user ==
+Admin -> UI: Submit form tạo user
+UI -> Hook: useCreateUser(data)
+Hook -> API: POST /api/users
+API -> Ctl: create(AdminSaveUserRequest)
+Ctl -> Svc: createUser(user)
+Svc -> UserRepo: findByEmail(email)
+alt Email đã tồn tại
+  UserRepo --> Svc: User
+  Svc --> Ctl: IllegalArgumentException
+  Ctl --> API: 400
+  API --> UI: Thông báo trùng email
+else Email hợp lệ
+  UserRepo --> Svc: empty
+  Svc -> RoleRepo: findByName(role)
+  RoleRepo --> Svc: Role
+  Svc -> UserRepo: save(encodedPassword)
+  UserRepo --> Svc: User
+  Svc --> Ctl: User
+  Ctl --> API: 200
+  API --> UI: Thông báo thành công
+end
+
+== Cập nhật user ==
+Admin -> UI: Submit cập nhật user
+UI -> Hook: useUpdateUser(id,data)
+Hook -> API: PUT /api/users/{id}
+API -> Ctl: update(id,user)
+Ctl -> Svc: updateUser(id,user)
+Svc -> UserRepo: findById(id)
+alt Không tìm thấy user
+  UserRepo --> Svc: empty
+  Svc --> Ctl: EntityNotFoundException
+  Ctl --> API: 404
+  API --> UI: Báo không cập nhật được
+else Tìm thấy
+  UserRepo --> Svc: User
+  opt Đổi email
+    Svc -> UserRepo: findByEmail(newEmail)
+    alt Email mới đã tồn tại
+      UserRepo --> Svc: User
+      Svc --> Ctl: IllegalArgumentException
+      Ctl --> API: 400
+      API --> UI: Báo trùng email
+    else Email mới hợp lệ
+      UserRepo --> Svc: empty
+    end
+  end
+  Svc -> RoleRepo: findByName(role)
+  RoleRepo --> Svc: Role
+  Svc -> UserRepo: save(updatedUser)
+  UserRepo --> Svc: User
+  Svc --> Ctl: User
+  Ctl --> API: 200
+  API --> UI: Thông báo thành công
+end
+
+== Xóa user ==
+Admin -> UI: Xác nhận xóa
+UI -> Hook: useDeleteUser(id)
+Hook -> API: DELETE /api/users/{id}
+API -> Ctl: delete(id)
+Ctl -> Svc: delete(id)
+Svc -> UserRepo: findById(id)
+alt Không tồn tại
+  UserRepo --> Svc: empty
+  Svc --> Ctl: EntityNotFoundException
+  Ctl --> API: 404
+  API --> UI: Báo không tìm thấy user
+else Tồn tại
+  UserRepo --> Svc: User
+  alt User có role ADMIN
+    Svc --> Ctl: RuntimeException("Không thể xoá tài khoản Admin")
+    Ctl --> API: 400 (GlobalExceptionHandler)
+    API --> UI: Từ chối xóa admin
+  else User thường
+    Svc -> UserRepo: deleteById(id)
+    UserRepo --> Svc: done
+    Svc --> Ctl: done
+    Ctl --> API: 200
+    API --> UI: Thông báo xóa thành công
+  end
+end
+@enduml
+

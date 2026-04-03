@@ -1,0 +1,50 @@
+@startuml
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  ArrowColor #0F172A
+}
+
+title Activity - Đăng nhập, Đăng ký, Phân quyền
+
+start
+:Người dùng mở hệ thống;
+if (Đã có phiên hợp lệ?) then (Có)
+  :Tải thông tin tài khoản;
+  if (Nhóm quyền quản trị?) then (Có)
+    :Mở khu vực Admin;
+  else (Không)
+    :Mở khu vực thành viên;
+  endif
+  stop
+else (Không)
+  :Hiển thị màn hình xác thực;
+endif
+
+if (Chọn Đăng ký?) then (Có)
+  :Nhập thông tin tài khoản mới;
+  if (Thông tin hợp lệ?) then (Hợp lệ)
+    :Tạo tài khoản mới;
+    :Khởi tạo phiên đăng nhập;
+    :Điều hướng vào trang chính;
+  else (Không hợp lệ)
+    :Thông báo lỗi và yêu cầu nhập lại;
+  endif
+else (Đăng nhập)
+  :Nhập thông tin đăng nhập;
+  if (Xác thực thành công?) then (Thành công)
+    :Khởi tạo phiên đăng nhập;
+    :Nạp thông tin vai trò;
+    if (Vai trò là Admin?) then (Có)
+      :Điều hướng đến dashboard quản trị;
+    else (Không)
+      :Điều hướng đến trang được yêu cầu;
+    endif
+  else (Thất bại)
+    :Thông báo sai thông tin đăng nhập;
+  endif
+endif
+stop
+@enduml
+

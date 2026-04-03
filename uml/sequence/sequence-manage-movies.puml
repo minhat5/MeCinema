@@ -1,0 +1,108 @@
+@startuml
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0F172A
+  LifeLineBorderColor #334155
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #334155
+}
+
+title Sequence - Quản lý phim
+
+actor Admin
+participant UI as "ManageMoviesPage"
+participant Hook as "useMovies/useCreateMovie/..."
+participant API as "apiClient"
+participant Sec as "@PreAuthorize(ADMIN)"
+participant Ctl as "AdminMovieController"
+participant Svc as "MovieServiceImpl"
+database MovieRepo as "MovieRepository"
+database GenreRepo as "GenreRepository"
+
+== Tải danh sách + bộ lọc ==
+Admin -> UI: Mở /admin/movies
+UI -> Hook: useMovies({search,status,page})
+alt Có từ khóa
+  Hook -> API: GET /api/movies/search?q&page&size
+else Không có từ khóa
+  Hook -> API: GET /api/movies?page&size
+end
+API -> Sec: Check ROLE_ADMIN
+Sec -> Ctl: search/getAll
+Ctl -> Svc: search(...) / findAll(...)
+Svc -> MovieRepo: findAll(spec,pageable)
+MovieRepo --> Svc: Page<Movie>
+Svc --> Ctl: Page<Movie>
+Ctl --> API: 200
+API --> Hook: content
+Hook --> UI: filter status ở frontend + render
+
+== Thêm phim ==
+Admin -> UI: Submit form thêm phim
+UI -> Hook: useCreateMovie(payload)
+Hook -> API: POST /api/movies
+API -> Ctl: create(MovieRequest)
+Ctl -> Svc: create(request)
+loop Mỗi genre name trong request.genres
+  Svc -> GenreRepo: findByName(name)
+  alt Không tìm thấy thể loại
+    GenreRepo --> Svc: empty
+    Svc --> Ctl: EntityNotFoundException
+    Ctl --> API: 400
+    API --> UI: Báo lỗi dữ liệu
+  else Tìm thấy
+    GenreRepo --> Svc: Genre
+  end
+end
+alt Request hợp lệ
+  Svc -> MovieRepo: save(new Movie)
+  MovieRepo --> Svc: Movie
+  Svc --> Ctl: Movie
+  Ctl --> API: 200
+  API --> UI: refresh list
+end
+
+== Sửa phim ==
+Admin -> UI: Chọn phim, submit cập nhật
+UI -> Hook: useUpdateMovie(id,payload)
+Hook -> API: PUT /api/movies/{id}
+API -> Ctl: update(id,request)
+Ctl -> Svc: update(id,request)
+Svc -> MovieRepo: findById(id)
+alt Không tồn tại
+  MovieRepo --> Svc: empty
+  Svc --> Ctl: EntityNotFoundException
+  Ctl --> API: 404
+  API --> UI: Báo không tìm thấy phim
+else Tồn tại
+  MovieRepo --> Svc: Movie
+  Svc -> GenreRepo: resolveGenres(...)
+  Svc -> MovieRepo: save(updatedMovie)
+  MovieRepo --> Svc: Movie
+  Svc --> Ctl: Movie
+  Ctl --> API: 200
+  API --> UI: Làm mới danh sách
+end
+
+== Xóa phim ==
+Admin -> UI: Xác nhận xóa
+UI -> Hook: useDeleteMovie(id)
+Hook -> API: DELETE /api/movies/{id}
+API -> Ctl: delete(id)
+Ctl -> Svc: delete(id)
+Svc -> MovieRepo: existsById(id)
+alt Không tồn tại
+  MovieRepo --> Svc: false
+  Svc --> Ctl: EntityNotFoundException
+  Ctl --> API: 404
+  API --> UI: Báo không tìm thấy phim
+else Tồn tại
+  MovieRepo --> Svc: true
+  Svc -> MovieRepo: deleteById(id)
+  MovieRepo --> Svc: done
+  Svc --> Ctl: done
+  Ctl --> API: 200
+  API --> UI: Cập nhật danh sách
+end
+@enduml
+
