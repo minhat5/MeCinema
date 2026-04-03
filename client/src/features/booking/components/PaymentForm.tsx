@@ -22,9 +22,10 @@ type Props = {
   bookingId: string;
   totalPrice: number;
   isExpired?: boolean;
+  onPaymentSuccess?: () => void;
 };
 
-export function PaymentForm({ bookingId, totalPrice, isExpired = false }: Props) {
+export function PaymentForm({ bookingId, totalPrice, isExpired = false, onPaymentSuccess }: Props) {
   const [qrUrl, setQrUrl] = useState('');
   const [isRedirecting, setIsRedirecting] = useState(false);
   const navigate = useNavigate();
@@ -63,7 +64,7 @@ export function PaymentForm({ bookingId, totalPrice, isExpired = false }: Props)
               color: 'green',
             });
             setTimeout(() => {
-              navigate(`/booking/result/${bookingId}`);
+              onPaymentSuccess?.();
             }, 1000);
           }
         })
@@ -86,7 +87,7 @@ export function PaymentForm({ bookingId, totalPrice, isExpired = false }: Props)
             color: 'green',
           });
           setTimeout(() => {
-            navigate(`/booking/result/${bookingId}`);
+            onPaymentSuccess?.();
           }, 1500);
         } else {
           setIsRedirecting(false);

@@ -54,4 +54,12 @@ public class BookingController {
         Pageable pageable = PageRequest.of(page, size);
         return bookingService.getBookingHistory(userDetails.getId(), pageable);
     }
+
+    @DeleteMapping("/{bookingId}")
+    public ResponseEntity<Void> cancelBooking(
+            @CurrentUser CustomUserDetails userDetails,
+            @PathVariable Long bookingId) {
+        bookingService.cancelBooking(userDetails.getId(), bookingId);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -1,6 +1,8 @@
 package com.mecinema.mecinema.service.impl;
 
+import com.mecinema.mecinema.exception.BookingException;
 import com.mecinema.mecinema.exception.ResourceNotFoundException;
+import com.mecinema.mecinema.model.enumtype.Status;
 import com.mecinema.mecinema.mapper.BookingMapper;
 import com.mecinema.mecinema.model.dto.booking.BookingRequest;
 import com.mecinema.mecinema.model.dto.booking.BookingResponse;
@@ -95,6 +97,24 @@ public class BookingServiceImpl implements BookingService {
         
         Map<Long, Payment> finalPaymentMap = paymentMap;
         return bookings.map(booking -> bookingMapper.toResponse(booking, Optional.ofNullable(finalPaymentMap.get(booking.getId()))));
+    }
+
+    @Override
+    @Transactional
+    public void cancelBooking(Long userId, Long bookingId) {
+        Booking booking = bookingRepository.findByIdAndUserId(bookingId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
+
+        if (booking.getStatus() == Status.SUCCESS) {
+            throw new BookingException("Cannot cancel a completed booking.");
+        }
+
+        if (booking.getStatus() == Status.FAILED) {
+            return; // Already cancelled/expired — nothing to do
+        }
+
+        booking.setStatus(Status.FAILED);
+        // bookingRepository.save() is implicit within @Transactional dirty-checking
     }
 
 }
