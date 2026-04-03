@@ -1,4 +1,4 @@
-package com.mecinema.mecinema.model.dto;
+package com.mecinema.mecinema.model.dto.showtimes;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

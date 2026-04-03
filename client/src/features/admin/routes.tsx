@@ -3,9 +3,9 @@ import { ManageMoviesPage } from './movies/pages';
 import ManageFoodPage from './food/pages/ManageFoodPage';
 import { ManageGenresPage } from './genres/pages';
 import { ManageShowtimesPage } from './showtimes/pages';
+import ManageRoomsPage from './rooms/pages/ManageRoomsPage';
 
 const DashboardPage = () => <div>Dashboard dang duoc hoan thien</div>;
-const ManageRoomsPage = () => <div>Quan ly phong chieu dang duoc hoan thien</div>;
 const ManageBookingsPage = () => <div>Quan ly dat ve dang duoc hoan thien</div>;
 
 export const adminRoutes = [

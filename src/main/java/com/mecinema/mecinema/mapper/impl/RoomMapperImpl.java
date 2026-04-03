@@ -1,7 +1,7 @@
 package com.mecinema.mecinema.mapper.impl;
 
 import com.mecinema.mecinema.mapper.RoomMapper;
-import com.mecinema.mecinema.model.dto.RoomDto;
+import com.mecinema.mecinema.model.dto.rooms.RoomDto;
 import com.mecinema.mecinema.model.entity.Room;
 import org.springframework.stereotype.Component;
 

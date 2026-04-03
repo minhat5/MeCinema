@@ -1,6 +1,9 @@
 package com.mecinema.mecinema.controller.admin;
 
 import com.mecinema.mecinema.model.dto.*;
+import com.mecinema.mecinema.model.dto.rooms.CreateRoomDto;
+import com.mecinema.mecinema.model.dto.rooms.RoomDto;
+import com.mecinema.mecinema.model.dto.rooms.UpdateRoomDto;
 import com.mecinema.mecinema.service.RoomService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +42,7 @@ public class RoomController {
     // Lấy danh sách phòng theo chi nhánh GET: /api/rooms?cinemaId=1&page=1&limit=10
     @GetMapping
     public ResponseEntity<ApiResponse<Page<RoomDto>>> getRoomsByCinema(
-            @RequestParam Long cinemaId,
+            @RequestParam(required = false) Long cinemaId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int limit) {
         

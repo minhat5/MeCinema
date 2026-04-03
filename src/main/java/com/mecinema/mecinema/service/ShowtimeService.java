@@ -1,9 +1,9 @@
 package com.mecinema.mecinema.service;
 
-import com.mecinema.mecinema.model.dto.CreateShowtimeRequest;
-import com.mecinema.mecinema.model.dto.PaginatedResponse;
-import com.mecinema.mecinema.model.dto.ShowtimeDTO;
-import com.mecinema.mecinema.model.dto.UpdateShowtimeRequest;
+import com.mecinema.mecinema.model.dto.showtimes.CreateShowtimeRequest;
+import com.mecinema.mecinema.model.dto.showtimes.PaginatedResponse;
+import com.mecinema.mecinema.model.dto.showtimes.ShowtimeDTO;
+import com.mecinema.mecinema.model.dto.showtimes.UpdateShowtimeRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
