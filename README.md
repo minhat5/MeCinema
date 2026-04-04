@@ -128,6 +128,7 @@ File: `src/main/resources/application.properties`
 - `server.port=5000`
 - `server.servlet.context-path=/mecinema`
 - datasource MySQL `cinema_booking_db`
+- Query create database `create_database.sql`
 
 ### 4.3. Cấu hình frontend
 
