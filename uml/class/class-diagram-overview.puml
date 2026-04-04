@@ -5,8 +5,9 @@ skinparam class {
   BorderColor #334155
   ArrowColor #0F172A
 }
+hide methods
 
-title Class Diagram - Entity MeCinema (Chi tiết)
+title Class Diagram
 
 abstract class BaseEntity {
   -createdAt: LocalDateTime
