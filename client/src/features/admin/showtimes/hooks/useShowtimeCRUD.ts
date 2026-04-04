@@ -133,19 +133,31 @@ const getMoviesForSelect = async () => {
 };
 
 const getCinemasForSelect = async () => {
-  const response = await apiClient.get('/showtimes', {
-    params: { page: 0, size: 300 },
-  });
-  const showtimes = Array.isArray(response?.data?.content) ? response.data.content : [];
-  const uniqueMap = new Map<string, ShowtimeRelatedEntity>();
+  const size = 200;
+  let page = 0;
+  let totalPages = 1;
+  const cinemas: ShowtimeRelatedEntity[] = [];
 
-  showtimes.forEach((item: any) => {
-    const id = String(item?.cinemaId ?? '');
-    if (!id || uniqueMap.has(id)) return;
-    uniqueMap.set(id, {
-      _id: id,
-      name: item?.cinemaName ?? `Rạp ${id}`,
+  do {
+    const response = await apiClient.get('/cinemas', {
+      params: { page, size },
     });
+
+    cinemas.push(...normalizeSelectList(response));
+
+    const pageRaw = (response as any)?.data ?? response;
+    const serverTotalPages = Number(pageRaw?.totalPages ?? 1);
+    totalPages =
+      Number.isFinite(serverTotalPages) && serverTotalPages > 0
+        ? serverTotalPages
+        : 1;
+    page += 1;
+  } while (page < totalPages);
+
+  const uniqueMap = new Map<string, ShowtimeRelatedEntity>();
+  cinemas.forEach((cinema) => {
+    if (!cinema._id || uniqueMap.has(cinema._id)) return;
+    uniqueMap.set(cinema._id, cinema);
   });
 
   return Array.from(uniqueMap.values());

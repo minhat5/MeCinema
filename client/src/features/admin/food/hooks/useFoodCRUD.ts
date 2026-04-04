@@ -123,13 +123,6 @@ const toAdminProductDetail = (item: any): AdminProductDetail => {
   };
 };
 
-const buildPagination = (raw: any, filter: { page: number; limit: number }): PaginationMeta => ({
-  page: Number(raw?.number ?? 0) + 1,
-  limit: Number(raw?.size ?? filter.limit),
-  totalItems: Number(raw?.totalElements ?? 0),
-  totalPages: Number(raw?.totalPages ?? 1),
-});
-
 export function useAdminProducts(
   filter: {
     page: number;
@@ -142,30 +135,58 @@ export function useAdminProducts(
   return useQuery({
     queryKey: ['admin-food-products', filter],
     queryFn: async (): Promise<ProductsListPayload> => {
-      const raw = await apiClient.get('/foods', {
-        params: {
-          page: Math.max(0, filter.page - 1),
-          size: filter.limit,
-        },
-      });
+      const fetchSize = 200;
+      let pageIndex = 0;
+      let totalPages = 1;
+      const allProducts: AdminProductRow[] = [];
 
-      let data: AdminProductRow[] = Array.isArray((raw as any)?.content)
-        ? (raw as any).content.map(toAdminProduct)
-        : [];
+      do {
+        const raw = await apiClient.get('/foods', {
+          params: {
+            page: pageIndex,
+            size: fetchSize,
+          },
+        });
+
+        const content = Array.isArray((raw as any)?.content)
+          ? (raw as any).content
+          : [];
+        allProducts.push(...content.map(toAdminProduct));
+
+        const serverTotalPages = Number((raw as any)?.totalPages ?? 1);
+        totalPages =
+          Number.isFinite(serverTotalPages) && serverTotalPages > 0
+            ? serverTotalPages
+            : 1;
+        pageIndex += 1;
+      } while (pageIndex < totalPages);
+
+      let filtered = allProducts;
 
       if (filter.kind === 'combo') {
-        data = data.filter((p) => p.category === 'COMBO');
+        filtered = filtered.filter((p) => p.category === 'COMBO');
       }
       if (filter.kind === 'retail') {
-        data = data.filter((p) => p.category !== 'COMBO');
+        filtered = filtered.filter((p) => p.category !== 'COMBO');
       }
       if (filter.category) {
-        data = data.filter((p) => p.category === filter.category);
+        filtered = filtered.filter((p) => p.category === filter.category);
       }
+
+      const totalItems = filtered.length;
+      const totalPagesAfterFilter = Math.max(1, Math.ceil(totalItems / filter.limit));
+      const currentPage = Math.min(Math.max(1, filter.page), totalPagesAfterFilter);
+      const start = (currentPage - 1) * filter.limit;
+      const data = filtered.slice(start, start + filter.limit);
 
       return {
         data,
-        pagination: buildPagination(raw, filter),
+        pagination: {
+          page: currentPage,
+          limit: filter.limit,
+          totalItems,
+          totalPages: totalPagesAfterFilter,
+        },
       };
     },
     enabled: options?.enabled ?? true,
