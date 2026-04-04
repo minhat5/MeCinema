@@ -15,6 +15,7 @@ import ProfileInfoPage from './features/user/pages/ProfileInfoPage';
 import BookingPage from './features/booking/pages/BookingPage';
 import BookingConfirmPage from './features/booking/pages/BookingConfirmPage';
 import BookingResultPage from './features/booking/pages/BookingResultPage';
+import SchedulePage from './features/movies/pages/SchedulePage';
 
 function App() {
     const adminChildren =
@@ -26,7 +27,7 @@ function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/phim" element={<MoviesPage />} />
                 <Route path="/phim/:movieId" element={<MovieDetailPage />} />
-                <Route path="/schedule" element={<div>Schedule Page</div>} />
+                <Route path="/schedule" element={<SchedulePage />} />
                 <Route path="/offers" element={<div>Offers Page</div>} />
                 <Route path="/news" element={<div>News Page</div>} />
                 <Route path="/dien-anh" element={<CinemaBrowsePage />} />

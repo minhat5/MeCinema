@@ -36,7 +36,7 @@ export default function Footer() {
             <ul className="space-y-2 text-gray-400 text-sm">
               <li>
                 <a
-                  href="/movies"
+                  href="/phim"
                   className="hover:text-yellow-400 transition-colors"
                 >
                   Phim
