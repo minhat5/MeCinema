@@ -71,6 +71,21 @@ const BookingPage = () => {
     );
   }
 
+  // Guard: suất chiếu đã qua → không cho phép đặt vé
+  const isShowtimePassed = new Date(data.showtime.startTime) < new Date();
+  if (isShowtimePassed) {
+    return (
+      <Center style={{ height: '70vh', backgroundColor: '#020617' }}>
+        <Stack align="center" gap="md">
+          <Text fw={800} size="xl" c="red.4">🎬 Suất chiếu đã qua!</Text>
+          <Text c="gray.4" ta="center" maw={400}>
+            Suất chiếu này đã bắt đầu hoặc đã kết thúc. Vui lòng chọn suất chiếu khác.
+          </Text>
+        </Stack>
+      </Center>
+    );
+  }
+
   const room = data.showtime.roomId as unknown as RoomType;
   const seats = room.seats ?? [];
 
@@ -95,6 +110,16 @@ const BookingPage = () => {
       notifications.show({
         title: 'Chưa chọn ghế',
         message: 'Vui lòng chọn ít nhất 1 ghế trước khi xác nhận.',
+        color: 'red',
+      });
+      return;
+    }
+
+    // Kiểm tra lần cuối: suất chiếu chưa bắt đầu (double-check phía client)
+    if (new Date(data.showtime.startTime) < new Date()) {
+      notifications.show({
+        title: 'Suất chiếu đã qua',
+        message: 'Suất chiếu này đã bắt đầu. Vui lòng chọn suất chiếu khác.',
         color: 'red',
       });
       return;
