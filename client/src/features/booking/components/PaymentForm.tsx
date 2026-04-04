@@ -69,7 +69,7 @@ export function PaymentForm({ bookingId, totalPrice, isExpired = false, onPaymen
           }
         })
         .catch(() => {});
-    }, 5000);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [bookingId, qrUrl, isRedirecting, navigate, isExpired]);

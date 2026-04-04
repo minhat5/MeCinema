@@ -119,6 +119,29 @@ export function TicketResult({ booking }: Props) {
             </Stack>
           )}
 
+          {/* Foods List */}
+          {(booking as any).foods && (booking as any).foods.length > 0 && (
+            <Stack gap={4} p="xs" bg="gray.0" style={{ borderRadius: 8 }}>
+              <Text size="xs" c="gray.6" fw={700} ta="center">
+                ĐỒ ĂN & THỨC UỐNG
+              </Text>
+              <Stack gap={2}>
+                {(booking as any).foods.map((f: any, idx: number) => (
+                  <Group key={f.foodId || idx} justify="space-between" wrap="nowrap">
+                    <Group gap={6} style={{ flex: 1, overflow: 'hidden' }}>
+                      <Text size="xs" fw={800} c="orange.7">
+                        x{f.quantity}
+                      </Text>
+                      <Text size="xs" fw={600} c="gray.8" truncate>
+                        {f.name}
+                      </Text>
+                    </Group>
+                  </Group>
+                ))}
+              </Stack>
+            </Stack>
+          )}
+
           {/* Mã QR để Check-in */}
           <Stack align="center" gap="xs">
             <QRCodeSVG

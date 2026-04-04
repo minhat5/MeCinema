@@ -1,4 +1,6 @@
-import { Modal, Text, Button, Stack } from '@mantine/core';
+import { Modal, Text, Button, Stack, Loader, Center } from '@mantine/core';
+import { useBookingDetail } from '../../booking/hooks/useBooking';
+import { TicketResult } from '../../booking/components/TicketResult';
 
 interface BookingDetailModalProps {
   bookingId: string;
@@ -15,13 +17,17 @@ export default function BookingDetailModal({
   onCancel,
   status,
 }: BookingDetailModalProps) {
+  // Chỉ lấy id khi modal đang mở, rỗng thì hook sẽ không call api do `enabled: !!id`
+  const queryId = opened ? bookingId : '';
+  const { data: booking, isLoading, isError } = useBookingDetail(queryId);
+
   return (
     <Modal
       opened={opened}
       onClose={onClose}
       title="Chi tiết đơn hàng"
       centered
-      size="md"
+      size="auto"
       radius="md"
       styles={{
         content: {
@@ -31,19 +37,17 @@ export default function BookingDetailModal({
         header: { backgroundColor: '#020617', color: 'white' },
       }}
     >
-      <Stack gap="md">
-        <Text c="gray.4" size="sm">
-          Ma don: {bookingId}
-        </Text>
-        <Text c="white" size="sm">
-          Trang thai: {status}
-        </Text>
-        <Text c="gray.5" size="sm">
-          Tinh nang chi tiet dat ve/mon an dang duoc hoan thien.
-        </Text>
+      <Stack gap="md" align="center">
+        {isLoading ? (
+          <Center p="xl"><Loader color="red" /></Center>
+        ) : isError || !booking ? (
+          <Text c="red">Không thể tải thông tin vé.</Text>
+        ) : (
+          <TicketResult booking={booking} />
+        )}
         {status === 'PENDING' && onCancel && (
-          <Button color="red" variant="light" size="xs" onClick={onCancel}>
-            Huy dat ve
+          <Button color="red" variant="light" size="xs" onClick={onCancel} w="100%">
+            Hủy đặt vé
           </Button>
         )}
       </Stack>

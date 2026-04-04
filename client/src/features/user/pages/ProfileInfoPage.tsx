@@ -15,6 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/layout/Navbar';
 import { updateMeApi } from '@/features/auth/services/auth.service';
 import { useMyBookings } from '@/features/booking/hooks/useMyBookings';
+import BookingDetailModal from '../components/BookingDetailModal';
 
 type SectionKey = 'info' | 'tickets' | 'loyalty' | 'password';
 
@@ -54,6 +55,7 @@ export default function ProfileInfoPage() {
   const [activeSection, setActiveSection] = useState<SectionKey>('info');
   const [profileMessage, setProfileMessage] = useState('');
   const [passwordMessage, setPasswordMessage] = useState('');
+  const [selectedBooking, setSelectedBooking] = useState<{ id: string; status: string } | null>(null);
   const userRecord = (user ?? {}) as Record<string, unknown>;
   // Booking detail actions are disabled until booking module is implemented.
   const displayName =
@@ -239,7 +241,11 @@ export default function ProfileInfoPage() {
           ) : (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {bookingItems.map((ticket) => (
-                <div key={ticket.id} className="rounded-xl border border-white/10 bg-white/5 p-4 flex flex-col gap-2 relative">
+                <div 
+                  key={ticket.id} 
+                  onClick={() => setSelectedBooking({ id: ticket.id, status: ticket.status })}
+                  className="rounded-xl border border-white/10 bg-white/5 p-4 flex flex-col gap-2 relative cursor-pointer hover:border-white/30 transition shadow-lg"
+                >
                   <div className="flex justify-between items-start">
                     <h3 className="font-bold text-lg text-rose-100">{ticket.movieTitle}</h3>
                     <span className={`px-2 py-1 text-xs font-bold rounded ${
@@ -535,7 +541,15 @@ export default function ProfileInfoPage() {
           </div>
         </main>
       </div>
-      {/* Booking detail modal is disabled until booking module is ready. */}
+      {/* Booking detail modal */}
+      {selectedBooking && (
+        <BookingDetailModal
+          bookingId={selectedBooking.id}
+          status={selectedBooking.status}
+          opened={!!selectedBooking}
+          onClose={() => setSelectedBooking(null)}
+        />
+      )}
     </div>
   );
 }
