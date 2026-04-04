@@ -52,6 +52,11 @@ public class BookingServiceImpl implements BookingService {
         Showtime showtime = showtimeRepository.findById(request.showtimeId())
                 .orElseThrow(() -> new ResourceNotFoundException("Showtime not found"));
 
+        // Không cho phép đặt vé suất chiếu đã bắt đầu hoặc đã qua
+        if (showtime.getStartTime().isBefore(java.time.LocalDateTime.now())) {
+            throw new BookingException("Suất chiếu này đã bắt đầu, không thể đặt vé.");
+        }
+
         Booking booking = bookingFactory.createPendingBooking(user, showtime);
 
         TicketSelectionService.TicketSelectionResult ticketResult = ticketSelectionService.createTicketsAndCalculateTotal(booking, showtime, request.seatIds());
