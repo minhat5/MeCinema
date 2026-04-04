@@ -23,4 +23,21 @@ public class SeatRepositoryImpl implements SeatRepositoryExtended {
                 .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                 .getResultList();
     }
+
+    @Override
+    public List<Seat> findByRoomIdAndRowSymbolAndSeatNumber(Long roomId, String rowSymbol, Integer seatNumber) {
+        return entityManager.createQuery(
+                "select s from Seat s where s.room.id = :roomId and s.rowSymbol = :rowSymbol and s.seatNumber = :seatNumber",
+                Seat.class)
+                .setParameter("roomId", roomId)
+                .setParameter("rowSymbol", rowSymbol)
+                .setParameter("seatNumber", seatNumber)
+                .getResultList();
+    }
+
+    @Override
+    public boolean existsByRoomIdAndRowSymbolAndSeatNumber(Long roomId, String rowSymbol, Integer seatNumber) {
+        List<Seat> result = findByRoomIdAndRowSymbolAndSeatNumber(roomId, rowSymbol, seatNumber);
+        return !result.isEmpty();
+    }
 }
