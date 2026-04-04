@@ -17,7 +17,9 @@ import {
 import { useSeatMap } from '../hooks/useSeatMap';
 import { useCreateBooking } from '../hooks/useBooking';
 import { seatReducer, initialSeatState } from '../reducers/seatReducer';
+import { foodReducer, initialFoodState } from '../reducers/foodReducer';
 import { SeatSelection } from '../components/SeatSelection';
+import { FoodSelection, type SelectedFood } from '../components/FoodSelection';
 import { BookingSummary } from '../components/BookingSummary';
 import { BookingTimer } from '../components/BookingTimer';
 import type { RoomType, MovieType } from '@shared/index';
@@ -29,6 +31,7 @@ const BookingPage = () => {
   const { data, isLoading } = useSeatMap(showtimeId!);
   const { mutate: createBooking, isPending } = useCreateBooking();
   const [state, dispatch] = useReducer(seatReducer, initialSeatState);
+  const [foodState, foodDispatch] = useReducer(foodReducer, initialFoodState);
 
   // Khi seatMap refetch và phát hiện ghế mình đang chọn đã bị người khác đặt → tự động bỏ chọn + cảnh báo
   const prevBookedRef = useRef<string[]>([]);
@@ -97,11 +100,20 @@ const BookingPage = () => {
       return;
     }
 
+    // Chuẩn bị dữ liệu đồ ăn
+    const selectedFoodsArray = Array.from(foodState.selectedFoods.values()).map(
+      (food) => ({
+        foodId: food.foodId,
+        quantity: food.quantity,
+      }),
+    );
+
     createBooking(
       {
         showtimeId: showtimeId!,
         seats: Array.from(state.selectedSeats.values()),
-      },
+        foods: selectedFoodsArray,
+      } as any,
       {
         onSuccess: (res) => {
           navigate(`/booking/confirm/${res.data._id}`);
@@ -193,19 +205,56 @@ const BookingPage = () => {
                 dispatch={dispatch}
               />
             </Paper>
+
+            {/* Chọn Đồ Ăn */}
+            <Paper
+              p="xl"
+              radius="lg"
+              bg="rgba(15, 23, 42, 0.6)"
+              style={{
+                border: '1px solid rgba(255,255,255,0.05)',
+                backdropFilter: 'blur(10px)',
+                marginTop: '1.5rem',
+              }}
+            >
+              <FoodSelection
+                selectedFoods={foodState.selectedFoods}
+                onFoodSelect={(food: SelectedFood) => {
+                  foodDispatch({ type: 'ADD_FOOD', payload: food });
+                }}
+                onFoodRemove={(foodId: number, quantity: number) => {
+                  foodDispatch({
+                    type: 'REMOVE_FOOD',
+                    payload: { foodId, quantity },
+                  });
+                }}
+              />
+            </Paper>
           </Grid.Col>
 
           {/* Sidebar Summary */}
           <Grid.Col span={{ base: 12, md: 4 }}>
             <Box style={{ position: 'sticky', top: 20 }}>
-              <BookingSummary
-                showtime={data.showtime}
-                selectedSeats={state.selectedSeats}
-                totalPrice={state.totalPrice}
-                isPending={isPending}
-                onConfirm={handleConfirm}
-                isConfirm={false}
-              />
+              {(() => {
+                // Calculate total price including foods
+                const foodsTotal = Array.from(foodState.selectedFoods.values()).reduce(
+                  (sum, f) => sum + f.price * f.quantity,
+                  0,
+                );
+                const grandTotal = state.totalPrice + foodsTotal;
+
+                return (
+                  <BookingSummary
+                    showtime={data.showtime}
+                    selectedSeats={state.selectedSeats}
+                    selectedFoods={foodState.selectedFoods}
+                    totalPrice={grandTotal}
+                    isPending={isPending}
+                    onConfirm={handleConfirm}
+                    isConfirm={false}
+                  />
+                );
+              })()}
             </Box>
           </Grid.Col>
         </Grid>
