@@ -1,0 +1,318 @@
+@startuml
+skinparam shadowing false
+skinparam class {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  ArrowColor #0F172A
+}
+
+title Class Diagram - Entity MeCinema (Chi tiết)
+
+abstract class BaseEntity {
+  -createdAt: LocalDateTime
+  -updatedAt: LocalDateTime
+  +getCreatedAt(): LocalDateTime
+  +setCreatedAt(createdAt: LocalDateTime): void
+  +getUpdatedAt(): LocalDateTime
+  +setUpdatedAt(updatedAt: LocalDateTime): void
+}
+
+class Role {
+  -id: Long
+  -name: RoleUser
+  +Role()
+  +Role(id: Long, name: RoleUser)
+  +getId(): Long
+  +setId(id: Long): void
+  +getName(): RoleUser
+  +setName(name: RoleUser): void
+}
+
+class User {
+  -id: Long
+  -email: String
+  -password: String
+  -fullName: String
+  -phone: String
+  -role: Role
+  +User()
+  +User(id: Long, email: String, password: String, fullName: String, phone: String, role: Role)
+  +getId(): Long
+  +setId(id: Long): void
+  +getEmail(): String
+  +setEmail(email: String): void
+  +getPassword(): String
+  +setPassword(password: String): void
+  +getFullName(): String
+  +setFullName(fullName: String): void
+  +getPhone(): String
+  +setPhone(phone: String): void
+  +getRole(): Role
+  +setRole(role: Role): void
+}
+
+class Genre {
+  -id: Long
+  -name: String
+  +Genre()
+  +Genre(id: Long, name: String)
+  +getId(): Long
+  +setId(id: Long): void
+  +getName(): String
+  +setName(name: String): void
+}
+
+class Movie {
+  -id: Long
+  -title: String
+  -description: String
+  -durationMinutes: Integer
+  -releaseDate: LocalDate
+  -posterUrl: String
+  -trailerUrl: String
+  -status: MovieStatus
+  -genres: Set<Genre>
+  +Movie()
+  +Movie(id: Long, title: String, description: String, durationMinutes: Integer, releaseDate: LocalDate, posterUrl: String, trailerUrl: String, status: MovieStatus, genres: Set<Genre>)
+  +getId(): Long
+  +setId(id: Long): void
+  +getTitle(): String
+  +setTitle(title: String): void
+  +getDescription(): String
+  +setDescription(description: String): void
+  +getDurationMinutes(): Integer
+  +setDurationMinutes(durationMinutes: Integer): void
+  +getReleaseDate(): LocalDate
+  +setReleaseDate(releaseDate: LocalDate): void
+  +getPosterUrl(): String
+  +setPosterUrl(posterUrl: String): void
+  +getTrailerUrl(): String
+  +setTrailerUrl(trailerUrl: String): void
+  +getStatus(): MovieStatus
+  +setStatus(status: MovieStatus): void
+  +getGenres(): Set<Genre>
+  +setGenres(genres: Set<Genre>): void
+}
+
+class Cinema {
+  -id: Long
+  -name: String
+  -address: String
+  -hotline: String
+  +Cinema()
+  +Cinema(id: Long, name: String, address: String, hotline: String)
+  +getId(): Long
+  +setId(id: Long): void
+  +getName(): String
+  +setName(name: String): void
+  +getAddress(): String
+  +setAddress(address: String): void
+  +getHotline(): String
+  +setHotline(hotline: String): void
+}
+
+class Room {
+  -id: Long
+  -cinema: Cinema
+  -name: String
+  +Room()
+  +Room(id: Long, cinema: Cinema, name: String)
+  +getId(): Long
+  +setId(id: Long): void
+  +getCinema(): Cinema
+  +setCinema(cinema: Cinema): void
+  +getName(): String
+  +setName(name: String): void
+}
+
+class Seat {
+  -id: Long
+  -room: Room
+  -rowSymbol: String
+  -seatNumber: Integer
+  -type: SeatType
+  +Seat()
+  +Seat(id: Long, room: Room, rowSymbol: String, seatNumber: Integer, type: SeatType)
+  +getId(): Long
+  +setId(id: Long): void
+  +getRoom(): Room
+  +setRoom(room: Room): void
+  +getRowSymbol(): String
+  +setRowSymbol(rowSymbol: String): void
+  +getSeatNumber(): Integer
+  +setSeatNumber(seatNumber: Integer): void
+  +getType(): SeatType
+  +setType(type: SeatType): void
+}
+
+class Showtime {
+  -id: Long
+  -movie: Movie
+  -room: Room
+  -startTime: LocalDateTime
+  -endTime: LocalDateTime
+  -basePrice: BigDecimal
+  +Showtime()
+  +Showtime(id: Long, movie: Movie, room: Room, startTime: LocalDateTime, endTime: LocalDateTime, basePrice: BigDecimal)
+  +getId(): Long
+  +setId(id: Long): void
+  +getMovie(): Movie
+  +setMovie(movie: Movie): void
+  +getRoom(): Room
+  +setRoom(room: Room): void
+  +getStartTime(): LocalDateTime
+  +setStartTime(startTime: LocalDateTime): void
+  +getEndTime(): LocalDateTime
+  +setEndTime(endTime: LocalDateTime): void
+  +getBasePrice(): BigDecimal
+  +setBasePrice(basePrice: BigDecimal): void
+}
+
+class Food {
+  -id: Long
+  -name: String
+  -description: String
+  -price: BigDecimal
+  -imageUrl: String
+  -type: FoodType
+  -isActive: Boolean
+  +Food()
+  +Food(id: Long, name: String, description: String, price: BigDecimal, imageUrl: String, type: FoodType, isActive: Boolean)
+  +getId(): Long
+  +setId(id: Long): void
+  +getName(): String
+  +setName(name: String): void
+  +getDescription(): String
+  +setDescription(description: String): void
+  +getPrice(): BigDecimal
+  +setPrice(price: BigDecimal): void
+  +getImageUrl(): String
+  +setImageUrl(imageUrl: String): void
+  +getType(): FoodType
+  +setType(type: FoodType): void
+  +getIsActive(): Boolean
+  +setIsActive(isActive: Boolean): void
+}
+
+class Booking {
+  -id: Long
+  -version: Long
+  -user: User
+  -showtime: Showtime
+  -bookingTime: LocalDateTime
+  -totalPrice: BigDecimal
+  -status: Status
+  -tickets: Set<Ticket>
+  -bookingFoods: Set<BookingFood>
+  +Booking()
+  +Booking(id: Long, version: Long, user: User, showtime: Showtime, bookingTime: LocalDateTime, totalPrice: BigDecimal, status: Status, tickets: Set<Ticket>, bookingFoods: Set<BookingFood>)
+  +getId(): Long
+  +setId(id: Long): void
+  +getVersion(): Long
+  +setVersion(version: Long): void
+  +getUser(): User
+  +setUser(user: User): void
+  +getShowtime(): Showtime
+  +setShowtime(showtime: Showtime): void
+  +getBookingTime(): LocalDateTime
+  +setBookingTime(bookingTime: LocalDateTime): void
+  +getTotalPrice(): BigDecimal
+  +setTotalPrice(totalPrice: BigDecimal): void
+  +getStatus(): Status
+  +setStatus(status: Status): void
+  +getTickets(): Set<Ticket>
+  +setTickets(tickets: Set<Ticket>): void
+  +getBookingFoods(): Set<BookingFood>
+  +setBookingFoods(bookingFoods: Set<BookingFood>): void
+}
+
+class Ticket {
+  -id: Long
+  -booking: Booking
+  -seat: Seat
+  -price: BigDecimal
+  +Ticket()
+  +Ticket(id: Long, booking: Booking, seat: Seat, price: BigDecimal)
+  +getId(): Long
+  +setId(id: Long): void
+  +getBooking(): Booking
+  +setBooking(booking: Booking): void
+  +getSeat(): Seat
+  +setSeat(seat: Seat): void
+  +getPrice(): BigDecimal
+  +setPrice(price: BigDecimal): void
+}
+
+class BookingFood {
+  -id: Long
+  -booking: Booking
+  -food: Food
+  -quantity: Integer
+  -price: BigDecimal
+  +BookingFood()
+  +BookingFood(id: Long, booking: Booking, food: Food, quantity: Integer, price: BigDecimal)
+  +getId(): Long
+  +setId(id: Long): void
+  +getBooking(): Booking
+  +setBooking(booking: Booking): void
+  +getFood(): Food
+  +setFood(food: Food): void
+  +getQuantity(): Integer
+  +setQuantity(quantity: Integer): void
+  +getPrice(): BigDecimal
+  +setPrice(price: BigDecimal): void
+}
+
+class Payment {
+  -id: Long
+  -version: Long
+  -booking: Booking
+  -paymentMethod: PaymentMethod
+  -transactionNo: String
+  -status: Status
+  +Payment()
+  +Payment(id: Long, version: Long, booking: Booking, paymentMethod: PaymentMethod, transactionNo: String, status: Status)
+  +getId(): Long
+  +setId(id: Long): void
+  +getVersion(): Long
+  +setVersion(version: Long): void
+  +getBooking(): Booking
+  +setBooking(booking: Booking): void
+  +getPaymentMethod(): PaymentMethod
+  +setPaymentMethod(paymentMethod: PaymentMethod): void
+  +getTransactionNo(): String
+  +setTransactionNo(transactionNo: String): void
+  +getStatus(): Status
+  +setStatus(status: Status): void
+}
+
+BaseEntity <|-- User
+BaseEntity <|-- Role
+BaseEntity <|-- Movie
+BaseEntity <|-- Genre
+BaseEntity <|-- Cinema
+BaseEntity <|-- Room
+BaseEntity <|-- Seat
+BaseEntity <|-- Showtime
+BaseEntity <|-- Booking
+BaseEntity <|-- Ticket
+BaseEntity <|-- Food
+BaseEntity <|-- BookingFood
+BaseEntity <|-- Payment
+
+Role "1" <-- "0..*" User : role
+Movie "0..*" -- "0..*" Genre : genres
+Cinema "1" <-- "0..*" Room : cinema
+Room "1" <-- "0..*" Seat : room
+Movie "1" <-- "0..*" Showtime : movie
+Room "1" <-- "0..*" Showtime : room
+User "1" <-- "0..*" Booking : user
+Showtime "1" <-- "0..*" Booking : showtime
+Booking "1" <-- "0..*" Ticket : tickets
+Seat "1" <-- "0..*" Ticket : seat
+Booking "1" <-- "0..*" BookingFood : bookingFoods
+Food "1" <-- "0..*" BookingFood : food
+Booking "1" <-- "0..*" Payment : payments
+
+@enduml
+

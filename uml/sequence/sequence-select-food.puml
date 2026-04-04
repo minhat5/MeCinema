@@ -1,0 +1,42 @@
+@startuml
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0F172A
+  LifeLineBorderColor #334155
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #334155
+}
+
+title Sequence - Chọn đồ ăn và thức uống
+
+actor User as "Khách hàng"
+participant UI as "FoodSelection"
+participant Hook as "useAvailableFoods"
+participant API as "apiClient"
+participant Ctl as "FoodController"
+participant Svc as "FoodService"
+database Repo as "FoodRepository"
+
+== Tải danh sách món ==
+User -> UI: Mở bước chọn đồ ăn
+UI -> Hook: useAvailableFoods(page, size)
+Hook -> API: GET /api/public/foods/available?page&size
+API -> Ctl: getAvailableFoods(page, size)
+Ctl -> Svc: search("", null, true, pageable)
+Svc -> Repo: findAllBySpec(...)
+Repo --> Svc: Page<Food>
+Svc --> Ctl: Page<FoodDTO>
+Ctl --> API: 200
+API --> Hook: Danh sách món khả dụng
+Hook --> UI: Render menu
+
+== Chọn món ==
+loop Mỗi lần thay đổi số lượng món
+  User -> UI: Tăng/giảm số lượng món
+  UI -> UI: Cập nhật giỏ món
+  UI -> UI: Tính lại tổng tiền
+end
+
+UI --> User: Chuyển sang bước xác nhận đặt vé
+@enduml
+

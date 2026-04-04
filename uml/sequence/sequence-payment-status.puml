@@ -1,0 +1,42 @@
+@startuml
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0F172A
+  LifeLineBorderColor #334155
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #334155
+}
+
+title Sequence - Theo dõi trạng thái thanh toán
+
+actor User as "Khách hàng"
+participant UI as "BookingResultPage"
+participant API as "apiClient"
+participant Ctl as "PaymentController"
+participant Svc as "PaymentService"
+participant Gateway as "SePay"
+
+== Frontend kiểm tra trạng thái ==
+loop Trong thời gian chờ thanh toán
+  UI -> API: GET /api/bookings/{id}/payments/status
+  API -> Ctl: checkPaymentStatus(currentUser, id)
+  Ctl -> Svc: checkPaymentStatusAPI(id)
+  Svc --> Ctl: true/false
+  Ctl --> API: 200
+  API --> UI: Trạng thái thanh toán
+end
+
+alt Thành công
+  UI --> User: Hiển thị thanh toán thành công
+else Hết hạn/Thất bại
+  UI --> User: Hiển thị thanh toán thất bại
+end
+
+== Callback đồng bộ trạng thái từ cổng thanh toán ==
+Gateway -> API: POST /api/payments/callback
+API -> Ctl: callback(authHeader, payload)
+Ctl -> Svc: handleCallback(payload, token)
+Svc --> Ctl: done
+Ctl --> API: 200
+@enduml
+

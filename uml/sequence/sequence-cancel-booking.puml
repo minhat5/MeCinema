@@ -1,0 +1,41 @@
+@startuml
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0F172A
+  LifeLineBorderColor #334155
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #334155
+}
+
+title Sequence - Hủy đặt vé
+
+actor User as "Khách hàng"
+participant UI as "BookingDetail/HistoryPage"
+participant Hook as "cancelBookingApi"
+participant API as "apiClient"
+participant Ctl as "BookingController"
+participant Svc as "BookingService"
+database Repo as "BookingRepository"
+
+User -> UI: Bấm hủy đơn đặt vé
+UI -> UI: Hiển thị hộp thoại xác nhận
+User -> UI: Xác nhận hủy
+UI -> Hook: cancelBookingApi(bookingId)
+Hook -> API: DELETE /api/bookings/{bookingId}
+API -> Ctl: cancelBooking(currentUser, bookingId)
+Ctl -> Svc: cancelBooking(userId, bookingId)
+Svc -> Repo: findBookingAndValidateOwner(...)
+alt Không hợp lệ hoặc không tồn tại
+  Svc --> Ctl: throw exception
+  Ctl --> API: 400/404
+  API --> UI: Thông báo hủy thất bại
+else Hợp lệ
+  Svc -> Repo: update status = CANCELED
+  Svc -> Svc: Giải phóng ghế đã giữ
+  Svc --> Ctl: done
+  Ctl --> API: 204 No Content
+  API --> UI: Cập nhật trạng thái đơn
+  UI --> User: Thông báo hủy thành công
+end
+@enduml
+
