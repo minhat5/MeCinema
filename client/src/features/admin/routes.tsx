@@ -7,19 +7,10 @@ import ManageRoomsPage from './rooms/pages/ManageRoomsPage';
 import ManageSeatsPage from './rooms/pages/ManageSeatsPage';
 import { ManageCinemasPage } from './cinemas/pages';
 
-const DashboardPage = () => <div>Dashboard dang duoc hoan thien</div>;
-const ManageBookingsPage = () => <div>Quan ly dat ve dang duoc hoan thien</div>;
-
 export const adminRoutes = [
   {
     path: 'admin',
     children: [
-      {
-        path: 'dashboard',
-        element: <DashboardPage />,
-        name: 'Dashboard',
-        icon: 'BarChart3',
-      },
       {
         path: 'cinemas',
         element: <ManageCinemasPage />,
@@ -67,12 +58,6 @@ export const adminRoutes = [
         element: <UsersPage />,
         name: 'Quản lý tài khoản',
         icon: 'Users',
-      },
-      {
-        path: 'bookings',
-        element: <ManageBookingsPage />,
-        name: 'Quản lý đặt vé',
-        icon: 'Ticket',
       },
     ],
   },

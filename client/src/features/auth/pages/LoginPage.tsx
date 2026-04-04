@@ -12,14 +12,47 @@ import {
 import { LoginForm } from '../components/LoginForm';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Film } from 'lucide-react';
+import { ROLES } from '@shared/constants/roles';
+import type { AuthResponseData } from '@shared/index';
+
+const normalizeRole = (rawRole: unknown): string => {
+  if (typeof rawRole === 'string') {
+    return rawRole.replace(/^ROLE_/, '');
+  }
+
+  if (rawRole && typeof rawRole === 'object') {
+    const name = (rawRole as { name?: unknown }).name;
+    if (typeof name === 'string') {
+      return name.replace(/^ROLE_/, '');
+    }
+  }
+
+  return '';
+};
 
 export default function LoginPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const from = location.state?.from || '/';
 
-  const handleLoginSuccess = () => {
-    navigate(from, { replace: true });
+  const fromState = location.state?.from;
+  const fromPath =
+    typeof fromState === 'string'
+      ? fromState
+      : typeof fromState?.pathname === 'string'
+        ? `${fromState.pathname}${fromState.search ?? ''}${fromState.hash ?? ''}`
+        : '/';
+
+  const handleLoginSuccess = (response?: AuthResponseData) => {
+    const role = normalizeRole(response?.user?.role);
+    const isAdmin = role === ROLES.ADMIN;
+    const shouldUseDefaultAdminPath = !fromPath || fromPath === '/' || fromPath === '/login';
+
+    if (isAdmin && shouldUseDefaultAdminPath) {
+      navigate('/admin/cinemas', { replace: true });
+      return;
+    }
+
+    navigate(fromPath || '/', { replace: true });
   };
 
   return (

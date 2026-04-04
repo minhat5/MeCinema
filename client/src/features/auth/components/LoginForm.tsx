@@ -4,8 +4,9 @@ import { loginSchema, type LoginInput } from '@shared/index';
 import { FormInputText } from '@/components/form/FormInputText';
 import { FormPasswordInputText } from '@/components/form/FormPasswordInputText';
 import { useLogin } from '../hooks/useLogin';
+import type { AuthResponseData } from '@shared/index';
 
-export function LoginForm({ onSuccess }: { onSuccess: () => void }) {
+export function LoginForm({ onSuccess }: { onSuccess: (response?: AuthResponseData) => void }) {
   const { mutate: login, isPending } = useLogin();
 
   const form = useForm({
@@ -16,8 +17,8 @@ export function LoginForm({ onSuccess }: { onSuccess: () => void }) {
     validators: { onChange: loginSchema },
     onSubmit: ({ value }) => {
       login(value, {
-        onSuccess: () => {
-          onSuccess();
+        onSuccess: (response) => {
+          onSuccess(response as AuthResponseData | undefined);
         },
       });
     },

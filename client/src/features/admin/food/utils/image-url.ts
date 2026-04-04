@@ -27,8 +27,3 @@ export function getDirectImageUrlError(url: string): string | null {
 
   return null;
 }
-
-export function isDirectImageUrl(url: string): boolean {
-  return getDirectImageUrlError(url) == null;
-}
-

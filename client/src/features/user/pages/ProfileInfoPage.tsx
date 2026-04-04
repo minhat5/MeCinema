@@ -54,7 +54,6 @@ export default function ProfileInfoPage() {
   const queryClient = useQueryClient();
   const [activeSection, setActiveSection] = useState<SectionKey>('info');
   const [profileMessage, setProfileMessage] = useState('');
-  const [passwordMessage, setPasswordMessage] = useState('');
   const [selectedBooking, setSelectedBooking] = useState<{ id: string; status: string } | null>(null);
   const userRecord = (user ?? {}) as Record<string, unknown>;
   // Booking detail actions are disabled until booking module is implemented.
@@ -150,13 +149,6 @@ export default function ProfileInfoPage() {
       );
     },
   });
-
-  const handlePasswordSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setPasswordMessage(
-      'Tính năng đổi mật khẩu đang được hoàn thiện. Vui lòng thử lại sau.',
-    );
-  };
 
   const handleProfileSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -384,56 +376,6 @@ export default function ProfileInfoPage() {
             {profileMessage && (
               <p className="mt-4 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
                 {profileMessage}
-              </p>
-            )}
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-            <h3 className="mb-4 text-lg font-bold">Đổi mật khẩu</h3>
-            <form onSubmit={handlePasswordSubmit} className="space-y-4">
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-white/80">
-                  Mật khẩu hiện tại
-                </label>
-                <input
-                  type="password"
-                  className="w-full rounded-lg border border-white/15 bg-black/40 px-4 py-2.5 text-sm outline-none ring-0 transition placeholder:text-white/30 focus:border-rose-400"
-                  placeholder="Nhập mật khẩu hiện tại"
-                  required
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-white/80">
-                  Mật khẩu mới
-                </label>
-                <input
-                  type="password"
-                  className="w-full rounded-lg border border-white/15 bg-black/40 px-4 py-2.5 text-sm outline-none ring-0 transition placeholder:text-white/30 focus:border-rose-400"
-                  placeholder="Nhập mật khẩu mới"
-                  required
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-white/80">
-                  Xác nhận mật khẩu mới
-                </label>
-                <input
-                  type="password"
-                  className="w-full rounded-lg border border-white/15 bg-black/40 px-4 py-2.5 text-sm outline-none ring-0 transition placeholder:text-white/30 focus:border-rose-400"
-                  placeholder="Nhập lại mật khẩu mới"
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                className="mt-2 rounded-lg bg-rose-500 px-5 py-2.5 text-sm font-bold text-black transition hover:bg-rose-400"
-              >
-                Cập nhật mật khẩu
-              </button>
-            </form>
-            {passwordMessage && (
-              <p className="mt-4 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
-                {passwordMessage}
               </p>
             )}
           </div>

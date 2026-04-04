@@ -11,9 +11,6 @@ import {
   getNowShowing,
   getUpcoming,
   getMovies,
-  getGenres,
-  getCinemaCities,
-  getCinemas,
 } from '../services/movies.service';
 
 export const useNowShowing = (limit = 10) =>
@@ -35,25 +32,4 @@ export const useMovies = (params?: Record<string, any>) =>
     queryKey: ['movies', params],
     queryFn: () => getMovies(params),
     staleTime: 5 * 60 * 1000,
-  });
-
-export const useGenres = () =>
-  useQuery({
-    queryKey: ['genres'],
-    queryFn: getGenres,
-    staleTime: 30 * 60 * 1000,
-  });
-
-export const useCinemaCities = () =>
-  useQuery({
-    queryKey: ['cinemas', 'cities'],
-    queryFn: getCinemaCities,
-    staleTime: 30 * 60 * 1000,
-  });
-
-export const useCinemas = (params?: Record<string, any>) =>
-  useQuery({
-    queryKey: ['cinemas', params],
-    queryFn: () => getCinemas(params),
-    staleTime: 10 * 60 * 1000,
   });

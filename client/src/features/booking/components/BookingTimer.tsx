@@ -17,7 +17,7 @@ export function BookingTimer({ duration = 600, onExpire, expiresAt }: Props) {
   });
 
   useEffect(() => {
-    let timerId: NodeJS.Timeout;
+    let timerId: ReturnType<typeof setTimeout> | null = null;
 
     if (expiresAt) {
       // CHẾ ĐỘ 1: Đếm ngược theo mốc thời gian cố định (Dành cho trang Thanh toán)
@@ -42,7 +42,9 @@ export function BookingTimer({ duration = 600, onExpire, expiresAt }: Props) {
       timerId = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
-            clearInterval(timerId);
+            if (timerId !== null) {
+              clearInterval(timerId);
+            }
             onExpireRef.current();
             return 0;
           }
@@ -52,7 +54,7 @@ export function BookingTimer({ duration = 600, onExpire, expiresAt }: Props) {
     }
 
     return () => {
-      if (timerId) {
+      if (timerId !== null) {
         clearTimeout(timerId);
         clearInterval(timerId);
       }
