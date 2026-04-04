@@ -5,7 +5,6 @@ import {
   Text,
   Group,
   Divider,
-  Badge,
   Button,
   Image,
   Box,
@@ -70,9 +69,6 @@ export function BookingSummary({
             <Title order={4} c="white">
               {movie?.title}
             </Title>
-            <Badge color="yellow" variant="outline" size="xs">
-              {movie?.ageRating}
-            </Badge>
           </Stack>
         </Group>
 

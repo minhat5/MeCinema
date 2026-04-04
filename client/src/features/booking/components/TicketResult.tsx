@@ -59,7 +59,7 @@ export function TicketResult({ booking }: Props) {
               {movie.title}
             </Title>
             <Text size="sm" c="gray.6">
-              {movie.duration} phút • {movie.language}
+              {movie.duration} phút
             </Text>
           </Stack>
 
