@@ -23,6 +23,7 @@ import {
 } from '../hooks/useRoomCRUD';
 import {EditRoomModal} from '../components/EditRoomModal';
 import {RoomSeatConfigModal} from '../components/RoomSeatConfigModal';
+import {SeatCountBadge} from '../components/SeatCountBadge';
 import {LoadingSpinner} from '../../../../components/ui/LoadingSpinner';
 
 const inputStyles = {
@@ -217,8 +218,8 @@ export default function ManageRoomsPage() {
                             <td className="px-4 py-3 text-[#dae2fd]">
                               {room.cinemaName}
                             </td>
-                            <td className="px-4 py-3 text-[#dae2fd]">
-                              {room.totalSeats}
+                            <td className="px-4 py-3">
+                              <SeatCountBadge roomId={room.id} />
                             </td>
                             <td className="px-4 py-3 text-[#8c90a1] text-sm">
                               {room.createdAt
