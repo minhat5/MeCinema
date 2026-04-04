@@ -11,5 +11,7 @@ public interface BookingService {
     BookingResponse getBooking(Long userId, Long bookingId);
 
     Page<BookingResponse> getBookingHistory(Long userId, Pageable pageable);
+
+    void cancelBooking(Long userId, Long bookingId);
 }
 

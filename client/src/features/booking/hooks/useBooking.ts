@@ -15,6 +15,10 @@ export const useCreateBooking = () => {
       queryClient.invalidateQueries({ queryKey: ['seats'] });
       queryClient.invalidateQueries({ queryKey: ['my-bookings'] });
     },
+    onError: () => {
+      // Làm mới seatMap ngay khi đặt vé thất bại để hiển thị ghế đã bị đặt
+      queryClient.invalidateQueries({ queryKey: ['seats'] });
+    },
   });
 };
 export const useBookingDetail = (id: string) => {

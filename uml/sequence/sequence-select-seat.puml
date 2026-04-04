@@ -1,0 +1,44 @@
+@startuml
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0F172A
+  LifeLineBorderColor #334155
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #334155
+}
+
+title Sequence - Chọn ghế ngồi
+
+actor User as "Khách hàng"
+participant UI as "SeatSelectionPage"
+participant Hook as "useSeatLayout/socket..."
+participant API as "apiClient"
+participant Ctl as "BookingController"
+participant Svc as "SeatServiceImpl"
+database Repo as "SeatRepository"
+
+== Tải Sơ đồ và trạng thái ==
+User -> UI: Tiếp tục từ màn Chọn lịch chiếu (với showtimeId)
+UI -> Hook: useSeatLayout(showtimeId)
+Hook -> API: GET /api/showtimes/{id}/seats
+API -> Ctl: getRoomSeatsWithStatus(showtimeId)
+Ctl -> Svc: getSeatsForShowtime(showtimeId)
+Svc -> Repo: lấy cấu trúc ghế trong Room (Type: Standard/VIP)
+Svc -> Repo: lấy danh sách vé (Booking) đã xuất/đang hold
+Svc -> Svc: Trộn dữ liệu trạng thái tương ứng
+Svc --> Ctl: SeatMapDTO (layout theo dãy, ghế empty, ghế sold)
+Ctl --> API: 200 OK
+API --> Hook: data
+Hook --> UI: Hiển thị sơ đồ ghế mượt
+
+== Chọn/Bỏ Chọn ==
+loop Quy trình thao tác click trên màn
+  User -> UI: Tick/Bỏ Tick vào ghế cụ thể
+  UI -> UI: Kiểm tra số lượng tối đa (ví dụ 8 ghế/luợt)
+  UI -> UI: Cập nhật biến LocalState: selectedSeats + totalAmount
+end
+
+User -> UI: Bấm Sang bước Kế (Tiếp Tục thanh toán)
+UI -> UI: Check > 0 ghế đã chọn ? Chuyển Router (truyền selectedSeats qua trang sau) : Báo lỗi
+@enduml
+

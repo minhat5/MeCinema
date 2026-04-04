@@ -14,7 +14,7 @@ public class BookingProperties {
     @Getter
     @Setter
     public static class Pending {
-        private int expiryMinutes = 15;
+        private int expiryMinutes = 2;
     }
 
     @Getter

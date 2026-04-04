@@ -5,8 +5,8 @@ export const useSeatMap = (showtimeId: string) => {
   return useQuery({
     queryKey: ['seats', showtimeId],
     queryFn: () => getSeatMapApi(showtimeId).then((res) => res.data),
-    staleTime: 10 * 1000,
-    refetchInterval: 30 * 1000,
+    staleTime: 0,           // Luôn coi là stale để invalidation có hiệu lực ngay
+    refetchInterval: 15 * 1000, // Poll mỗi 15s để cập nhật ghế bị đặt bởi người khác
     enabled: !!showtimeId,
     placeholderData: keepPreviousData,
   });

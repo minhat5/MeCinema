@@ -10,7 +10,8 @@ type SeatAction =
   | { type: 'SELECT_SEAT'; payload: SeatSelection }
   | { type: 'DESELECT_SEAT'; payload: string }
   | { type: 'RESET' }
-  | { type: 'SET_MAX_SEATS'; payload: number };
+  | { type: 'SET_MAX_SEATS'; payload: number }
+  | { type: 'REMOVE_INVALID_SEATS'; payload: string[] }; // payload: list of seatIds now booked by others
 
 export const initialSeatState: SeatState = {
   selectedSeats: new Map(),
@@ -56,6 +57,25 @@ export const seatReducer = (
 
     case 'SET_MAX_SEATS':
       return { ...state, maxSeats: action.payload };
+
+    case 'REMOVE_INVALID_SEATS': {
+      const invalidSet = new Set(action.payload);
+      const next = new Map(state.selectedSeats);
+      let removedPrice = 0;
+      for (const seatId of invalidSet) {
+        const seat = next.get(seatId);
+        if (seat) {
+          removedPrice += seat.price;
+          next.delete(seatId);
+        }
+      }
+      if (removedPrice === 0) return state; // nothing changed
+      return {
+        ...state,
+        selectedSeats: next,
+        totalPrice: Math.max(0, state.totalPrice - removedPrice),
+      };
+    }
 
     default:
       return state;
