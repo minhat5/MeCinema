@@ -1,6 +1,10 @@
 package com.mecinema.mecinema.controller.showtime;
 
 import com.mecinema.mecinema.model.dto.*;
+import com.mecinema.mecinema.model.dto.showtimes.CreateShowtimeRequest;
+import com.mecinema.mecinema.model.dto.showtimes.PaginatedResponse;
+import com.mecinema.mecinema.model.dto.showtimes.ShowtimeDTO;
+import com.mecinema.mecinema.model.dto.showtimes.UpdateShowtimeRequest;
 import com.mecinema.mecinema.service.ShowtimeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -22,6 +22,7 @@ export interface ModalProps extends Omit<
   onConfirm?: () => void;
   confirmLoading?: boolean;
   hideCancelButton?: boolean;
+  isDark?: boolean;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -36,6 +37,7 @@ export const Modal: React.FC<ModalProps> = ({
   onConfirm,
   confirmLoading = false,
   hideCancelButton = false,
+  isDark = false,
   ...modalProps
 }) => {
   return (
@@ -45,15 +47,41 @@ export const Modal: React.FC<ModalProps> = ({
       title={title}
       centered
       radius="lg"
-      classNames={{
-        title: 'text-base font-semibold text-slate-900',
-        body: 'pt-1',
-      }}
+      overlayProps={
+        isDark ? {
+          backgroundOpacity: 0.55,
+          blur: 3,
+        } : {}
+      }
+      classNames={
+        isDark ? {
+          title: 'text-base font-semibold text-[#dae2fd]',
+          body: 'bg-[#131b2e]',
+          content: 'bg-[#131b2e] border border-[#424656]/30',
+          header: 'bg-[#131b2e] border-b border-[#424656]/30',
+          close: 'text-[#b3c5ff] hover:text-[#dae2fd]',
+        } : {
+          title: 'text-base font-semibold text-slate-900',
+          body: 'pt-1',
+        }
+      }
+      styles={
+        isDark ? {
+          content: {
+            backgroundColor: '#131b2e',
+            borderColor: '#424656',
+          },
+          header: {
+            backgroundColor: '#131b2e',
+            borderBottomColor: '#424656',
+          },
+        } : {}
+      }
       {...modalProps}
     >
       <div className="space-y-5">
         {description ? (
-          <Text size="sm" c="dimmed" className="leading-relaxed">
+          <Text size="sm" c={isDark ? '#b3c5ff' : 'dimmed'} className="leading-relaxed">
             {description}
           </Text>
         ) : null}
@@ -64,7 +92,7 @@ export const Modal: React.FC<ModalProps> = ({
           <Group
             justify="flex-end"
             gap="sm"
-            className="pt-2 border-t border-slate-200"
+            className={`pt-2 border-t ${isDark ? 'border-[#424656]/30' : 'border-slate-200'}`}
           >
             {!hideCancelButton && (
               <Button
