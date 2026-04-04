@@ -1,7 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { getMeApi, loginApi } from '../services/auth.service';
-import type { ApiResponse, LoginInput } from '@shared/index';
+import type { LoginInput } from '@shared/index';
+
+const resolveLoginErrorMessage = (error: unknown): string => {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+  return 'Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản và mật khẩu.';
+};
 
 export function useLogin() {
   const queryClient = useQueryClient();
@@ -27,10 +34,10 @@ export function useLogin() {
         color: 'green',
       });
     },
-    onError: (error: ApiResponse<null>) => {
+    onError: (error: unknown) => {
       notifications.show({
-        title: 'Thất bại',
-        message: error.message || 'Có lỗi hệ thống',
+        title: 'Đăng nhập không thành công',
+        message: resolveLoginErrorMessage(error),
         color: 'red',
       });
     },
