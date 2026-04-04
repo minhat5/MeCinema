@@ -27,8 +27,6 @@ export default function Navbar() {
     { label: 'LỊCH CHIẾU', href: '/schedule' },
     { label: 'PHIM', href: '/phim' },
     // { label: 'BẮP NƯỚC', href: '/order/food' }, // TODO: re-enable when food menu UI is ready
-    { label: 'ƯU ĐÃI', href: '/offers' },
-    { label: 'TIN TỨC PHIM', href: '/news' },
   ];
 
   return (
