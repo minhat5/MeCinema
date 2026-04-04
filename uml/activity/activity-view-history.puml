@@ -1,0 +1,28 @@
+@startuml
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  ArrowColor #0F172A
+}
+
+title Activity - Xem lịch sử đặt vé
+
+start
+:Khách hàng vào mục Lịch sử vé;
+if (Đã đăng nhập?) then (Có)
+  :Gửi yêu cầu tải danh sách vé (kèm token xác thực);
+  :Hệ thống lấy thông tin hóa đơn đặt chỗ của user;
+  if (Có giao dịch nào?) then (Có)
+    :Tải xong danh sách vé;
+    :Hiển thị chi tiết (Mã vé, phim, rạp, ghế, trạng thái vé, mã QR);
+  else (Không)
+    :Hiển thị hệ thống trống không có vé nào;
+  endif
+else (Không)
+  :Yêu cầu đăng nhập;
+  :Điều hướng tới trang đăng nhập;
+endif
+stop
+@enduml
+

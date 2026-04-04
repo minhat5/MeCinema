@@ -1,0 +1,34 @@
+@startuml
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0F172A
+  LifeLineBorderColor #334155
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #334155
+}
+
+title Sequence - Xem lịch chiếu
+
+actor User as "Khách/Thành viên"
+participant UI as "ShowtimePage/MovieDetail"
+participant Hook as "useShowtimes"
+participant API as "apiClient"
+participant Ctl as "ShowtimeController"
+participant Svc as "ShowtimeServiceImpl"
+database Repo as "ShowtimeRepository"
+
+== Khách xem lịch chiếu ==
+User -> UI: Chọn ngày, chọn phim, hoặc chọn cụm rạp
+UI -> Hook: useShowtimes({movieId, date, cinemaId})
+Hook -> API: GET /api/showtimes?movieId&date&cinemaId
+API -> Ctl: getShowtimes(movieId, date, cinemaId)
+Ctl -> Svc: findByConditions(movieId, date, cinemaId)
+Svc -> Repo: queryByCinemaAndMovieAndDate(...)
+Repo --> Svc: List<Showtime>
+Svc --> Ctl: List<ShowtimeDTO> (nhóm dữ liệu theo rạp/ngày)
+Ctl --> API: 200 OK
+API --> Hook: data
+Hook --> UI: render danh sách nhóm theo Cụm rạp / Giờ
+UI --> User: Hiển thị giao diện danh sách suất chiếu
+@enduml
+

@@ -1,0 +1,34 @@
+@startuml
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0F172A
+  LifeLineBorderColor #334155
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #334155
+}
+
+title Sequence - Xem lịch sử đặt vé
+
+actor Customer as "Khách hàng"
+participant UI as "TicketHistoryPage"
+participant Hook as "useTicketHistory"
+participant API as "apiClient"
+participant Ctl as "BookingController"
+participant Svc as "BookingServiceImpl"
+database Repo as "BookingRepository"
+
+== Tải Lịch sử Đặt vé ==
+Customer -> UI: Truy cập trang Lịch sử vé thành viên
+UI -> Hook: useTicketHistory()
+Hook -> API: GET /api/bookings/history (Bearer Token)
+API -> Ctl: getMyBookings(authentication)
+Ctl -> Svc: getUserBookings(userId)
+Svc -> Repo: findByUserIdOrderByCreatedAtDesc(userId)
+Repo --> Svc: List<Booking> (chứa thông tin vé, rạp, ghế, giá)
+Svc --> Ctl: List<BookingHistoryDTO>
+Ctl --> API: 200 OK
+API --> Hook: data
+Hook --> UI: render danh sách giao dịch vé
+UI --> Customer: Hiện thị thông tin vé, mã QR, trạng thái
+@enduml
+
