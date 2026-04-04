@@ -1,0 +1,38 @@
+@startuml
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  ArrowColor #0F172A
+}
+
+title Activity - Quản lý cụm rạp
+
+start
+:Quản trị viên vào module Cụm rạp;
+if (Có quyền ADMIN?) then (Có)
+  :Tải danh sách cụm rạp (phân trang/tìm kiếm);
+else (Không)
+  :Từ chối truy cập;
+  stop
+endif
+
+if (Chọn thêm cụm rạp?) then (Có)
+  :Nhập tên, địa chỉ, hotline;
+  :Gửi yêu cầu tạo mới;
+elseif (Chọn cập nhật cụm rạp?) then (Có)
+  :Sửa thông tin và lưu;
+else (Xóa cụm rạp)
+  :Xác nhận xóa;
+  :Gửi yêu cầu xóa;
+endif
+
+if (Xử lý thành công?) then (Có)
+  :Làm mới danh sách;
+  :Thông báo thành công;
+else (Không)
+  :Hiển thị thông báo lỗi;
+endif
+stop
+@enduml
+

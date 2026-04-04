@@ -1,0 +1,32 @@
+@startuml
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  ArrowColor #0F172A
+}
+
+title Activity - Thanh toán đơn hàng
+
+start
+:Người dùng vào màn xác nhận thanh toán;
+:Gửi yêu cầu tạo thanh toán cho booking;
+if (Khởi tạo thanh toán thành công?) then (Có)
+  :Nhận mã QR / đường dẫn thanh toán;
+  :Người dùng thực hiện chuyển khoản;
+  repeat
+    :Hệ thống kiểm tra trạng thái thanh toán;
+  repeat while (Chưa thành công và chưa hết thời gian?) is (Tiếp tục)
+
+  if (Thanh toán thành công?) then (Có)
+    :Cập nhật trạng thái booking thành công;
+    :Hiển thị màn kết quả thành công;
+  else (Không)
+    :Hiển thị thất bại hoặc quá hạn;
+  endif
+else (Không)
+  :Thông báo lỗi khởi tạo thanh toán;
+endif
+stop
+@enduml
+

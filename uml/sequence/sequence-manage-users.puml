@@ -7,7 +7,7 @@ skinparam sequence {
   ParticipantBorderColor #334155
 }
 
-title Sequence - Quản lý user
+title Sequence - Quản lý người dùng
 
 actor Admin
 participant UI as "UsersPage + UserForm"
@@ -20,12 +20,12 @@ participant RoleSvc as "RoleService"
 database UserRepo as "UserRepository"
 database RoleRepo as "RoleRepository"
 
-== Tải danh sách + tìm kiếm/lọc role ==
+== Tải danh sách + tìm kiếm/lọc vai trò ==
 Admin -> UI: Mở /admin/users
 UI -> Hook: useUsers({search,role,page})
 alt Có search
   Hook -> API: GET /api/users/search?q&page&size
-else Có role filter
+else Có lọc vai trò
   Hook -> API: GET /api/users/role/{role}?page&size
 else Mặc định
   Hook -> API: GET /api/users?page&size
@@ -41,11 +41,11 @@ else Đủ quyền
   UserRepo --> Svc: Page<User>
   Svc --> Ctl: Page<User>
   Ctl --> API: 200
-  API --> UI: render bảng
+  API --> UI: Render bảng
 end
 
-== Tạo user ==
-Admin -> UI: Submit form tạo user
+== Tạo người dùng ==
+Admin -> UI: Submit form tạo người dùng
 UI -> Hook: useCreateUser(data)
 Hook -> API: POST /api/users
 API -> Ctl: create(AdminSaveUserRequest)
@@ -67,14 +67,14 @@ else Email hợp lệ
   API --> UI: Thông báo thành công
 end
 
-== Cập nhật user ==
-Admin -> UI: Submit cập nhật user
+== Cập nhật người dùng ==
+Admin -> UI: Submit cập nhật người dùng
 UI -> Hook: useUpdateUser(id,data)
 Hook -> API: PUT /api/users/{id}
 API -> Ctl: update(id,user)
 Ctl -> Svc: updateUser(id,user)
 Svc -> UserRepo: findById(id)
-alt Không tìm thấy user
+alt Không tìm thấy người dùng
   UserRepo --> Svc: empty
   Svc --> Ctl: EntityNotFoundException
   Ctl --> API: 404
@@ -101,7 +101,7 @@ else Tìm thấy
   API --> UI: Thông báo thành công
 end
 
-== Xóa user ==
+== Xóa người dùng ==
 Admin -> UI: Xác nhận xóa
 UI -> Hook: useDeleteUser(id)
 Hook -> API: DELETE /api/users/{id}
@@ -112,11 +112,11 @@ alt Không tồn tại
   UserRepo --> Svc: empty
   Svc --> Ctl: EntityNotFoundException
   Ctl --> API: 404
-  API --> UI: Báo không tìm thấy user
+  API --> UI: Báo không tìm thấy người dùng
 else Tồn tại
   UserRepo --> Svc: User
   alt User có role ADMIN
-    Svc --> Ctl: RuntimeException("Không thể xoá tài khoản Admin")
+    Svc --> Ctl: RuntimeException("Không thể xóa tài khoản Admin")
     Ctl --> API: 400 (GlobalExceptionHandler)
     API --> UI: Từ chối xóa admin
   else User thường
@@ -128,4 +128,3 @@ else Tồn tại
   end
 end
 @enduml
-

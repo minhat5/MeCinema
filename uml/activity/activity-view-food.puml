@@ -1,0 +1,28 @@
+@startuml
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  ArrowColor #0F172A
+}
+
+title Activity - Xem menu đồ ăn và thức uống
+
+start
+:Người dùng mở bước chọn đồ ăn trong luồng đặt vé;
+:Gửi yêu cầu lấy danh sách món đang bán;
+if (Có bộ lọc theo loại?) then (Có)
+  :Lọc theo FOOD/DRINK/COMBO;
+else (Không)
+  :Hiển thị toàn bộ món khả dụng;
+endif
+if (Có dữ liệu?) then (Có)
+  :Hiển thị danh sách món, giá và hình ảnh;
+  :Người dùng tăng/giảm số lượng món;
+  :Cập nhật tổng tiền tạm tính;
+else (Không)
+  :Hiển thị thông báo chưa có món phù hợp;
+endif
+stop
+@enduml
+

@@ -1,0 +1,35 @@
+@startuml
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  ArrowColor #0F172A
+}
+
+title Activity - Quản lý ghế và sơ đồ ghế
+
+start
+:Quản trị viên vào module Ghế;
+:Chọn phòng chiếu;
+:Tải danh sách ghế và sơ đồ ghế;
+if (Tạo ghế hàng loạt?) then (Có)
+  :Nhập dãy ghế, số bắt đầu/kết thúc, loại ghế;
+  :Gửi yêu cầu tạo bulk;
+elseif (Tạo/Cập nhật từng ghế?) then (Có)
+  :Nhập thông tin ghế;
+  :Gửi yêu cầu lưu;
+elseif (Xóa một ghế?) then (Có)
+  :Xác nhận xóa ghế;
+  :Gửi yêu cầu xóa theo seatId;
+else (Xóa toàn bộ ghế theo phòng)
+  :Xác nhận xóa toàn bộ;
+  :Gửi yêu cầu xóa theo roomId;
+endif
+if (Xử lý thành công?) then (Có)
+  :Làm mới danh sách và sơ đồ;
+else (Không)
+  :Thông báo lỗi;
+endif
+stop
+@enduml
+

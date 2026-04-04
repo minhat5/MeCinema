@@ -9,30 +9,25 @@ skinparam activity {
 title Activity - Chọn ghế ngồi
 
 start
-:Truy cập bước Chọn ghế dựa vào suất chiếu;
-:Hệ thống truy xuất sơ đồ phòng và phân loại ghế (trống / đã đặt / combo...);
-:Lên màn hình giao diện sơ đồ ghế;
+:Khách hàng vào trang đặt vé theo showtimeId;
+:Hệ thống đồng thời tải thông tin suất chiếu
+và trạng thái ghế đã đặt;
+:Hiển thị sơ đồ ghế;
 repeat
-  :Người dùng click ghế ngồi;
-  if (Ghế đã bán hoặc khóa?) then (Có)
-    :Chặn chọn, báo ghế có người mua;
-  else (Ghế trống)
-    if (Ghế đó đang trong danh sách chọn của user?) then (Có)
-      :Thực hiện hủy chọn ghế;
-      :Loại khỏi giỏ tiền tạm;
-    else (Chưa chọn)
-      if (Check số ghế vượt quá qui định VD: max 8 ghế?) then (Có)
-        :Báo lỗi tối đa lượng ghế cho phép;
-      else (Không)
-        :Thêm ghế vào giỏ;
-        :Cập nhật giá tổng hóa đơn;
-      endif
-    endif
+  :Người dùng chọn hoặc bỏ chọn ghế;
+  if (Ghế không khả dụng?) then (Có)
+    :Chặn thao tác và thông báo;
+  else (Không)
+    :Cập nhật danh sách ghế đã chọn;
+    :Tính lại tổng tiền tạm tính;
   endif
-repeat while (Cần chọn thêm/đổi chỗ?) is (Có)
+repeat while (Tiếp tục chọn?) is (Có)
 
-:Click tiếp tục;
-:Chốt danh sách, chuyển bước Đồ ăn - Thanh toán;
+if (Đã chọn ít nhất 1 ghế?) then (Có)
+  :Bấm Tiếp tục;
+  :Chuyển sang bước chọn đồ ăn/xác nhận đặt vé;
+else (Không)
+  :Thông báo cần chọn ghế;
+endif
 stop
 @enduml
-

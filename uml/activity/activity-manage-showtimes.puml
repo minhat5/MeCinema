@@ -1,0 +1,33 @@
+@startuml
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  ArrowColor #0F172A
+}
+
+title Activity - Quản lý suất chiếu
+
+start
+:Quản trị viên mở module Suất chiếu;
+:Tải danh sách suất chiếu theo trang và sắp xếp;
+if (Chọn tạo suất chiếu?) then (Có)
+  :Chọn phim, cụm rạp, phòng;
+  :Nhập thời gian bắt đầu/kết thúc và giá cơ bản;
+  :Gửi yêu cầu tạo;
+elseif (Chọn cập nhật suất chiếu?) then (Có)
+  :Cập nhật thời gian hoặc giá;
+  :Gửi yêu cầu cập nhật;
+else (Hủy/Xóa suất chiếu)
+  :Xác nhận hủy;
+  :Gửi yêu cầu xóa;
+endif
+if (Xử lý thành công?) then (Có)
+  :Làm mới danh sách;
+  :Hiển thị thông báo thành công;
+else (Không)
+  :Hiển thị lỗi (trùng lịch, dữ liệu không hợp lệ...);
+endif
+stop
+@enduml
+

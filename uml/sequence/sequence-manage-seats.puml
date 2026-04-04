@@ -1,0 +1,62 @@
+@startuml
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0F172A
+  LifeLineBorderColor #334155
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #334155
+}
+
+title Sequence - Quản lý ghế và sơ đồ ghế
+
+actor Admin as "Quản trị viên"
+participant UI as "ManageSeatsPage"
+participant Hook as "useSeatCRUD"
+participant API as "apiClient"
+participant Ctl as "AdminSeatController"
+participant Svc as "SeatManagementService"
+database Repo as "SeatRepository"
+
+== Tải danh sách ghế và sơ đồ ==
+Admin -> UI: Chọn phòng chiếu
+UI -> Hook: useSeatsByRoom(roomId) + useSeatMapLayout(roomId)
+par Danh sách ghế
+  Hook -> API: GET /api/admin/seats?roomId&page&size
+  API -> Ctl: getSeatsByRoom(...)
+  Ctl -> Svc: getSeatsByRoom(roomId, pageable)
+  Svc -> Repo: findByRoomId(...)
+  Repo --> Svc: Page<Seat>
+  Ctl --> API: 200
+and Sơ đồ ghế
+  Hook -> API: GET /api/admin/seats/layout/{roomId}
+  API -> Ctl: getSeatMapLayout(roomId)
+  Ctl -> Svc: getSeatMapLayout(roomId)
+  Svc --> Ctl: SeatMapLayoutDto
+  Ctl --> API: 200
+end
+API --> UI: Hiển thị danh sách ghế và sơ đồ
+
+== Tạo/Cập nhật/Xóa ghế ==
+alt Tạo một ghế
+  Hook -> API: POST /api/admin/seats
+  API -> Ctl: createSeat(dto)
+  Ctl -> Svc: createSeat(dto)
+  Ctl --> API: 201
+else Tạo nhiều ghế
+  Hook -> API: POST /api/admin/seats/bulk
+  API -> Ctl: createSeatsInBulk(dto)
+  Ctl -> Svc: createSeatsInBulk(dto)
+  Ctl --> API: 201
+else Cập nhật ghế
+  Hook -> API: PATCH /api/admin/seats/{seatId}
+  API -> Ctl: updateSeat(seatId, dto)
+  Ctl -> Svc: updateSeat(seatId, dto)
+  Ctl --> API: 200
+else Xóa ghế
+  Hook -> API: DELETE /api/admin/seats/{seatId}
+  API -> Ctl: deleteSeat(seatId)
+  Ctl -> Svc: deleteSeat(seatId)
+  Ctl --> API: 200
+end
+@enduml
+

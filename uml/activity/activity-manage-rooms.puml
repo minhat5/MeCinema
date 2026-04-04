@@ -1,0 +1,32 @@
+@startuml
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  ArrowColor #0F172A
+}
+
+title Activity - Quản lý phòng chiếu
+
+start
+:Quản trị viên vào module Phòng chiếu;
+:Chọn cụm rạp cần quản lý;
+:Tải danh sách phòng theo cụm rạp;
+if (Chọn tạo phòng?) then (Có)
+  :Nhập tên phòng và cụm rạp;
+  :Gửi yêu cầu tạo;
+elseif (Chọn cập nhật phòng?) then (Có)
+  :Sửa thông tin phòng;
+  :Gửi yêu cầu cập nhật;
+else (Xóa phòng)
+  :Xác nhận xóa phòng;
+  :Gửi yêu cầu xóa;
+endif
+if (Thành công?) then (Có)
+  :Cập nhật lại danh sách phòng;
+else (Không)
+  :Thông báo lỗi nghiệp vụ;
+endif
+stop
+@enduml
+

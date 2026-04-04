@@ -1,0 +1,43 @@
+@startuml
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0F172A
+  LifeLineBorderColor #334155
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #334155
+}
+
+title Sequence - Đặt vé trực tuyến
+
+actor Customer as "Khách hàng"
+participant UI as "BookingPage/BookingConfirmPage"
+participant Hook as "useSeatMap/useBooking"
+participant API as "apiClient"
+participant Ctl as "BookingController"
+participant Svc as "BookingService"
+database Repo as "BookingRepository"
+
+== Chuẩn bị dữ liệu đặt vé ==
+Customer -> UI: Chọn suất chiếu và ghế
+UI -> Hook: Tổng hợp showtimeId, seatIds, foods
+
+== Tạo đơn đặt vé ==
+UI -> Hook: useBooking.mutate(payload)
+Hook -> API: POST /api/bookings
+API -> Ctl: createBooking(currentUser, BookingRequest)
+Ctl -> Svc: createBooking(userId, request)
+Svc -> Svc: Kiểm tra ghế còn trống và dữ liệu hợp lệ
+alt Dữ liệu không hợp lệ hoặc ghế đã có người đặt
+  Svc --> Ctl: Ném lỗi nghiệp vụ
+  Ctl --> API: 400/409
+  API --> UI: Thông báo đặt vé thất bại
+else Hợp lệ
+  Svc -> Repo: save(booking)
+  Repo --> Svc: Booking
+  Svc --> Ctl: BookingResponse
+  Ctl --> API: 201 Created
+  API --> UI: bookingId + thông tin vé
+  UI --> Customer: Chuyển sang bước thanh toán
+end
+@enduml
+

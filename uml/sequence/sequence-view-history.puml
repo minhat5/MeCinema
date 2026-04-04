@@ -11,24 +11,23 @@ title Sequence - Xem lịch sử đặt vé
 
 actor Customer as "Khách hàng"
 participant UI as "TicketHistoryPage"
-participant Hook as "useTicketHistory"
+participant Hook as "useMyBookings"
 participant API as "apiClient"
 participant Ctl as "BookingController"
-participant Svc as "BookingServiceImpl"
+participant Svc as "BookingService"
 database Repo as "BookingRepository"
 
-== Tải Lịch sử Đặt vé ==
-Customer -> UI: Truy cập trang Lịch sử vé thành viên
-UI -> Hook: useTicketHistory()
-Hook -> API: GET /api/bookings/history (Bearer Token)
-API -> Ctl: getMyBookings(authentication)
-Ctl -> Svc: getUserBookings(userId)
-Svc -> Repo: findByUserIdOrderByCreatedAtDesc(userId)
-Repo --> Svc: List<Booking> (chứa thông tin vé, rạp, ghế, giá)
-Svc --> Ctl: List<BookingHistoryDTO>
+== Tải lịch sử đặt vé ==
+Customer -> UI: Truy cập trang lịch sử vé
+UI -> Hook: useMyBookings(page, limit)
+Hook -> API: GET /api/bookings/me?page&size
+API -> Ctl: getMyBookings(currentUser, page, size)
+Ctl -> Svc: getBookingHistory(userId, pageable)
+Svc -> Repo: findByUserIdOrderByCreatedAtDesc(...)
+Repo --> Svc: Page<Booking>
+Svc --> Ctl: Page<BookingResponse>
 Ctl --> API: 200 OK
-API --> Hook: data
-Hook --> UI: render danh sách giao dịch vé
-UI --> Customer: Hiện thị thông tin vé, mã QR, trạng thái
+API --> Hook: Dữ liệu phân trang
+Hook --> UI: Render danh sách giao dịch
+UI --> Customer: Hiển thị thông tin vé, ghế, tổng tiền, trạng thái
 @enduml
-

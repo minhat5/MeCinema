@@ -1,0 +1,32 @@
+@startuml
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0F172A
+  LifeLineBorderColor #334155
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #334155
+}
+
+title Sequence - Xem menu đồ ăn và thức uống
+
+actor User as "Khách hàng"
+participant UI as "FoodSelection"
+participant Hook as "useAvailableFoods"
+participant API as "apiClient"
+participant Ctl as "FoodController"
+participant Svc as "FoodService"
+database Repo as "FoodRepository"
+
+User -> UI: Mở bước chọn đồ ăn
+UI -> Hook: useAvailableFoods(page, size)
+Hook -> API: GET /api/public/foods/available?page&size
+API -> Ctl: getAvailableFoods(page, size)
+Ctl -> Svc: search(name="", type=null, isActive=true, pageable)
+Svc -> Repo: findAllByFilter(...)
+Repo --> Svc: Page<Food>
+Svc --> Ctl: Page<Food>
+Ctl --> API: 200 Page<FoodDTO>
+API --> Hook: Danh sách món khả dụng
+Hook --> UI: Render món, giá và loại món
+@enduml
+

@@ -1,0 +1,55 @@
+@startuml
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0F172A
+  LifeLineBorderColor #334155
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #334155
+}
+
+title Sequence - Thanh toán đơn hàng
+
+actor Customer as "Khách hàng"
+participant UI as "BookingConfirmPage/BookingResultPage"
+participant Hook as "usePayment"
+participant API as "apiClient"
+participant Ctl as "PaymentController"
+participant Svc as "PaymentService"
+participant Gateway as "SePay"
+
+== Khởi tạo thanh toán ==
+Customer -> UI: Bấm Thanh toán
+UI -> Hook: usePayment.mutate(bookingId)
+Hook -> API: POST /api/bookings/{id}/payments
+API -> Ctl: initPayment(currentUser, id, request)
+Ctl -> Svc: initPayment(userId, bookingId, request)
+Svc -> Gateway: Tạo giao dịch và QR
+Gateway --> Svc: paymentUrl + mã giao dịch
+Svc --> Ctl: PaymentInitResponse
+Ctl --> API: 201 Created
+API --> UI: paymentUrl/QR
+UI --> Customer: Hiển thị thông tin thanh toán
+
+== Kiểm tra trạng thái thanh toán ==
+loop Trong thời gian chờ thanh toán
+  UI -> API: GET /api/bookings/{id}/payments/status
+  API -> Ctl: checkPaymentStatus(currentUser, id)
+  Ctl -> Svc: checkPaymentStatusAPI(id)
+  Svc --> Ctl: true/false
+  Ctl --> API: 200
+end
+
+alt Thanh toán thành công
+  UI --> Customer: Hiển thị kết quả thành công
+else Quá hạn hoặc thất bại
+  UI --> Customer: Hiển thị kết quả thất bại
+end
+
+== Callback từ cổng thanh toán ==
+Gateway -> API: POST /api/payments/callback
+API -> Ctl: callback(authHeader, payload)
+Ctl -> Svc: handleCallback(payload, token)
+Svc --> Ctl: done
+Ctl --> API: 200
+@enduml
+

@@ -1,0 +1,34 @@
+@startuml
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  ArrowColor #0F172A
+}
+
+title Activity - Đặt vé trực tuyến
+
+start
+:Khách hàng chọn một suất chiếu;
+if (Đã đăng nhập?) then (Có)
+  :Tải sơ đồ ghế và trạng thái ghế;
+else (Không)
+  :Yêu cầu đăng nhập;
+  stop
+endif
+
+:Chọn ghế;
+if (Có chọn đồ ăn?) then (Có)
+  :Chọn món và số lượng;
+endif
+:Nhấn xác nhận đặt vé;
+:Gửi yêu cầu tạo booking;
+if (Tạo booking thành công?) then (Có)
+  :Nhận mã đặt vé (bookingId);
+  :Chuyển sang bước thanh toán;
+else (Không)
+  :Thông báo ghế không khả dụng hoặc lỗi dữ liệu;
+endif
+stop
+@enduml
+

@@ -6,80 +6,77 @@ skinparam usecase {
     BorderColor DarkCyan
 }
 
-actor "Khách vãng lai\n(Guest)" as Guest
-actor "Khách hàng\n(Customer)" as Customer
-actor "Quản trị viên\n(Admin)" as Admin
-actor "Cổng thanh toán" as PG
+actor "Khách vãng lai" as Guest
+actor "Khách hàng" as Customer
+actor "Quản trị viên" as Admin
+actor "Cổng thanh toán" as PaymentGateway
 
 Guest <|-- Customer
 
-rectangle "Hệ thống Website Đặt vé xem phim" {
+rectangle "Hệ thống đặt vé xem phim MeCinema" {
 
-    package "1. Identity & Access (Tài khoản)" {
+    package "1. Tài khoản" {
         usecase "Đăng ký / Đăng nhập" as UC_Auth
-        usecase "Quản lý Hồ sơ cá nhân" as UC_Profile
-        usecase "Quản lý User" as UC_ManageUsers
+        usecase "Quản lý hồ sơ cá nhân" as UC_Profile
+        usecase "Quản lý người dùng" as UC_ManageUsers
     }
 
-    package "2. Catalog (Danh mục Phim)" {
-        usecase "Xem & Tìm kiếm Phim" as UC_ViewMovies
-        usecase "Quản lý Phim" as UC_ManageMovies
-        usecase "Quản lý Thể loại" as UC_ManageGenres
+    package "2. Danh mục phim" {
+        usecase "Xem và tìm kiếm phim" as UC_ViewMovies
+        usecase "Xem lịch chiếu" as UC_ViewShowtimes
+        usecase "Quản lý phim" as UC_ManageMovies
+        usecase "Quản lý thể loại" as UC_ManageGenres
     }
 
-    package "3. Infrastructure (Cơ sở vật chất)" {
-        usecase "Quản lý Cụm rạp & Phòng chiếu" as UC_ManageCinemas
-        usecase "Quản lý Sơ đồ ghế" as UC_ManageSeats
+    package "3. Cơ sở vật chất" {
+        usecase "Quản lý cụm rạp" as UC_ManageCinemas
+        usecase "Quản lý phòng chiếu" as UC_ManageRooms
+        usecase "Quản lý ghế và sơ đồ ghế" as UC_ManageSeats
     }
 
-    package "4. Food & Beverage (Dịch vụ ăn uống)" {
-        usecase "Xem Menu F&B" as UC_ViewFB
-        usecase "Quản lý danh mục F&B" as UC_ManageFB
+    package "4. Đồ ăn và thức uống" {
+        usecase "Xem menu đồ ăn và thức uống" as UC_ViewFood
+        usecase "Quản lý danh mục đồ ăn và thức uống" as UC_ManageFood
     }
 
-    package "5. Operations (Lịch chiếu & Đặt vé)" {
-        usecase "Xem Lịch chiếu" as UC_ViewShowtimes
-        usecase "Quản lý Lịch chiếu" as UC_ManageShowtimes
+    package "5. Vận hành đặt vé" {
         usecase "Đặt vé trực tuyến" as UC_BookTicket
         usecase "Chọn ghế ngồi" as UC_SelectSeat
-        usecase "Chọn Đồ ăn/Thức uống" as UC_SelectFB
+        usecase "Chọn đồ ăn và thức uống" as UC_SelectFood
         usecase "Thanh toán đơn hàng" as UC_Payment
-        usecase "Xem Lịch sử đặt vé" as UC_ViewHistory
+        usecase "Theo dõi trạng thái thanh toán" as UC_PaymentStatus
+        usecase "Xem lịch sử đặt vé" as UC_ViewHistory
+        usecase "Hủy đặt vé" as UC_CancelBooking
+        usecase "Quản lý suất chiếu" as UC_ManageShowtimes
     }
 }
 
-' ==========================================
-' RELATIONSHIPS
-' ==========================================
-
-' Guest
 Guest --> UC_Auth
 Guest --> UC_ViewMovies
-Guest --> UC_ViewFB
 Guest --> UC_ViewShowtimes
+Guest --> UC_ViewFood
 
-' Customer
 Customer --> UC_Profile
 Customer --> UC_BookTicket
 Customer --> UC_ViewHistory
+Customer --> UC_CancelBooking
 
-' Luồng Đặt vé trực tuyến (Customer)
 UC_BookTicket ..> UC_Auth : <<include>>
 UC_BookTicket ..> UC_SelectSeat : <<include>>
-UC_BookTicket <.. UC_SelectFB : <<extend>>
+UC_BookTicket <.. UC_SelectFood : <<extend>>
 UC_BookTicket ..> UC_Payment : <<include>>
+UC_Payment ..> UC_PaymentStatus : <<include>>
 
-' Thanh toán
-UC_Payment --> PG
+UC_Payment --> PaymentGateway
 
-' Admin (Full quyền CRUD)
 Admin --> UC_Auth
 Admin --> UC_ManageUsers
 Admin --> UC_ManageMovies
 Admin --> UC_ManageGenres
 Admin --> UC_ManageCinemas
+Admin --> UC_ManageRooms
 Admin --> UC_ManageSeats
-Admin --> UC_ManageFB
+Admin --> UC_ManageFood
 Admin --> UC_ManageShowtimes
 
 @enduml

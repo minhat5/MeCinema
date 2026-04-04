@@ -1,0 +1,56 @@
+@startuml
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0F172A
+  LifeLineBorderColor #334155
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #334155
+}
+
+title Sequence - Quản lý phòng chiếu
+
+actor Admin as "Quản trị viên"
+participant UI as "ManageRoomsPage"
+participant Hook as "useAdminRooms/useCreateRoom/..."
+participant API as "apiClient"
+participant Ctl as "RoomController"
+participant Svc as "RoomService"
+database Repo as "RoomRepository"
+
+== Xem danh sách phòng theo cụm rạp ==
+Admin -> UI: Chọn cụm rạp
+UI -> Hook: useAdminRooms({cinemaId, page, limit})
+Hook -> API: GET /api/rooms?cinemaId&page&limit
+API -> Ctl: getRoomsByCinema(cinemaId, page, limit)
+Ctl -> Svc: getRoomsByCinema(cinemaId, pageable)
+Svc -> Repo: findByCinemaId(...)
+Repo --> Svc: Page<Room>
+Svc --> Ctl: Page<RoomDto>
+Ctl --> API: 200 ApiResponse<Page<RoomDto>>
+API --> UI: Hiển thị danh sách phòng
+
+== Tạo/Cập nhật/Xóa phòng ==
+alt Tạo phòng
+  UI -> Hook: useCreateRoom(body)
+  Hook -> API: POST /api/rooms
+  API -> Ctl: createRoom(dto)
+  Ctl -> Svc: createRoom(dto)
+  Svc -> Repo: save(room)
+  Ctl --> API: 201
+else Cập nhật phòng
+  UI -> Hook: useUpdateRoom(id, body)
+  Hook -> API: PATCH /api/rooms/{id}
+  API -> Ctl: updateRoom(id, dto)
+  Ctl -> Svc: updateRoom(id, dto)
+  Svc -> Repo: save(updatedRoom)
+  Ctl --> API: 200
+else Xóa phòng
+  UI -> Hook: useDeleteRoom(id)
+  Hook -> API: DELETE /api/rooms/{id}
+  API -> Ctl: deleteRoom(id)
+  Ctl -> Svc: deleteRoom(id)
+  Svc -> Repo: deleteById(id)
+  Ctl --> API: 200
+end
+@enduml
+

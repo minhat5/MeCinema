@@ -7,7 +7,7 @@ skinparam sequence {
   ParticipantBorderColor #334155
 }
 
-title Sequence - Quản lý food
+title Sequence - Quản lý đồ ăn và thức uống
 
 actor Admin
 participant UI as "ManageFoodPage"
@@ -34,10 +34,10 @@ else Đủ quyền
   Svc --> Ctl: Page<Food>
   Ctl --> API: 200 content
   API --> Hook: data
-  Hook --> UI: render list + filter local (retail/combo)
+  Hook --> UI: render list + filter local (món lẻ/combo)
 end
 
-== Thêm mới food/combo ==
+== Thêm mới món/combo ==
 Admin -> UI: Submit form thêm mới
 UI -> Hook: useCreateProduct/useCreateCombo
 Hook -> API: POST /api/foods
@@ -59,7 +59,7 @@ else Thành công
   UI --> Admin: Danh sách được cập nhật
 end
 
-== Chỉnh sửa food/combo ==
+== Chỉnh sửa món/combo ==
 Admin -> UI: Chọn sửa và lưu
 UI -> Hook: useUpdateProduct.mutate(id, body)
 Hook -> API: PUT /api/foods/{id}
@@ -102,4 +102,3 @@ Ctl --> API: 200
 API --> UI: success
 UI --> Admin: Hiển thị trạng thái "Ẩn"
 @enduml
-

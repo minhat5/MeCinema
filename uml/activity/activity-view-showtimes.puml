@@ -9,16 +9,21 @@ skinparam activity {
 title Activity - Xem lịch chiếu
 
 start
-:Khách truy cập trang phim hoặc trang lịch chiếu;
-:Chọn ngày xem, rạp chiếu hoặc phim;
-:Hệ thống tải dữ liệu lịch chiếu tương ứng;
-if (Có lịch chiếu phù hợp?) then (Có)
-  :Hiển thị danh sách các suất chiếu kết quả;
-  :Người dùng nhấn vào một suất chiếu cụ thể;
-  :Chuyển sang luồng chọn ghế lấy vé;
+:Người dùng mở trang chi tiết phim
+hoặc trang lịch chiếu tổng hợp;
+if (Xem theo phim?) then (Có)
+  :Gửi yêu cầu GET /api/showtimes/movie/{movieId};
+  :Nhận danh sách suất chiếu theo phim;
 else (Không)
-  :Hiển thị thông báo không có suất chiếu;
+  :Gửi yêu cầu GET /api/showtimes?page&size...;
+  :Nhận danh sách suất chiếu phân trang;
+endif
+if (Có dữ liệu lịch chiếu?) then (Có)
+  :Hiển thị lịch chiếu theo ngày/giờ/rạp;
+  :Người dùng chọn suất chiếu;
+  :Chuyển sang bước chọn ghế;
+else (Không)
+  :Hiển thị thông báo chưa có suất chiếu;
 endif
 stop
 @enduml
-

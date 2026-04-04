@@ -9,20 +9,18 @@ skinparam activity {
 title Activity - Xem lịch sử đặt vé
 
 start
-:Khách hàng vào mục Lịch sử vé;
+:Khách hàng truy cập trang Lịch sử vé;
 if (Đã đăng nhập?) then (Có)
-  :Gửi yêu cầu tải danh sách vé (kèm token xác thực);
-  :Hệ thống lấy thông tin hóa đơn đặt chỗ của user;
-  if (Có giao dịch nào?) then (Có)
-    :Tải xong danh sách vé;
-    :Hiển thị chi tiết (Mã vé, phim, rạp, ghế, trạng thái vé, mã QR);
+  :Gửi yêu cầu GET /api/bookings/me?page&size;
+  :Hệ thống lấy lịch sử đặt vé theo user hiện tại;
+  if (Có dữ liệu?) then (Có)
+    :Hiển thị danh sách vé theo trang;
+    :Cho phép chuyển trang để xem thêm;
   else (Không)
-    :Hiển thị hệ thống trống không có vé nào;
+    :Hiển thị trạng thái chưa có giao dịch;
   endif
 else (Không)
-  :Yêu cầu đăng nhập;
-  :Điều hướng tới trang đăng nhập;
+  :Chuyển hướng sang trang đăng nhập;
 endif
 stop
 @enduml
-

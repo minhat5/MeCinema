@@ -1,0 +1,60 @@
+@startuml
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0F172A
+  LifeLineBorderColor #334155
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #334155
+}
+
+title Sequence - Quản lý suất chiếu
+
+actor Admin as "Quản trị viên"
+participant UI as "ManageShowtimesPage"
+participant Hook as "useShowtimeCRUD"
+participant API as "apiClient"
+participant Ctl as "ShowtimeController"
+participant Svc as "ShowtimeService"
+database Repo as "ShowtimeRepository"
+
+== Tải danh sách suất chiếu ==
+Admin -> UI: Mở /admin/showtimes
+UI -> Hook: useShowtimes({page, limit, sort})
+Hook -> API: GET /api/showtimes?page&size&sortBy&sortDirection
+API -> Ctl: getAllShowtimes(...)
+Ctl -> Svc: getAllShowtimes(pageable)
+Svc -> Repo: findAll(pageable)
+Repo --> Svc: Page<Showtime>
+Svc --> Ctl: PaginatedResponse<ShowtimeDTO>
+Ctl --> API: 200 ApiResponse
+API --> UI: Render bảng suất chiếu
+
+== Tạo suất chiếu ==
+UI -> Hook: useCreateShowtime(payload)
+Hook -> API: POST /api/showtimes
+API -> Ctl: createShowtime(request)
+Ctl -> Svc: createShowtime(request)
+Svc -> Repo: save(showtime)
+Repo --> Svc: Showtime
+Svc --> Ctl: ShowtimeDTO
+Ctl --> API: 201
+API --> UI: Thông báo thành công
+
+== Cập nhật/Hủy suất chiếu ==
+alt Cập nhật
+  UI -> Hook: useUpdateShowtime(id, payload)
+  Hook -> API: PUT /api/showtimes/{id}
+  API -> Ctl: updateShowtime(id, request)
+  Ctl -> Svc: updateShowtime(id, request)
+  Svc -> Repo: save(updatedShowtime)
+  Ctl --> API: 200
+else Hủy/Xóa
+  UI -> Hook: useCancelShowtime(id)
+  Hook -> API: DELETE /api/showtimes/{id}
+  API -> Ctl: deleteShowtime(id)
+  Ctl -> Svc: deleteShowtime(id)
+  Svc -> Repo: deleteById(id)
+  Ctl --> API: 200
+end
+@enduml
+

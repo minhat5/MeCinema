@@ -10,35 +10,38 @@ skinparam sequence {
 title Sequence - Chọn ghế ngồi
 
 actor User as "Khách hàng"
-participant UI as "SeatSelectionPage"
-participant Hook as "useSeatLayout/socket..."
+participant UI as "BookingPage/SeatSelection"
+participant Hook as "useSeatMap"
 participant API as "apiClient"
-participant Ctl as "BookingController"
-participant Svc as "SeatServiceImpl"
-database Repo as "SeatRepository"
+participant ShowCtl as "ShowtimeController"
+participant BookCtl as "BookingController"
+participant SeatSvc as "SeatAvailabilityService"
 
-== Tải Sơ đồ và trạng thái ==
-User -> UI: Tiếp tục từ màn Chọn lịch chiếu (với showtimeId)
-UI -> Hook: useSeatLayout(showtimeId)
-Hook -> API: GET /api/showtimes/{id}/seats
-API -> Ctl: getRoomSeatsWithStatus(showtimeId)
-Ctl -> Svc: getSeatsForShowtime(showtimeId)
-Svc -> Repo: lấy cấu trúc ghế trong Room (Type: Standard/VIP)
-Svc -> Repo: lấy danh sách vé (Booking) đã xuất/đang hold
-Svc -> Svc: Trộn dữ liệu trạng thái tương ứng
-Svc --> Ctl: SeatMapDTO (layout theo dãy, ghế empty, ghế sold)
-Ctl --> API: 200 OK
-API --> Hook: data
-Hook --> UI: Hiển thị sơ đồ ghế mượt
+== Tải dữ liệu suất chiếu và trạng thái ghế ==
+User -> UI: Mở trang /booking/:slug/:showtimeId
+UI -> Hook: useSeatMap(showtimeId)
+par Lấy thông tin suất chiếu
+  Hook -> API: GET /api/showtimes/{showtimeId}
+  API -> ShowCtl: getShowtimeById(showtimeId)
+  ShowCtl --> API: 200 ApiResponse<ShowtimeDTO>
+and Lấy trạng thái ghế
+  Hook -> API: GET /api/bookings/showtimes/{showtimeId}/seats
+  API -> BookCtl: getSeatAvailability(showtimeId)
+  BookCtl -> SeatSvc: getSeatAvailability(showtimeId)
+  SeatSvc --> BookCtl: SeatAvailabilityResponse
+  BookCtl --> API: 200
+end
+API --> Hook: Dữ liệu suất chiếu + danh sách ghế
+Hook --> UI: Render sơ đồ ghế, ghế đã đặt và giá
 
-== Chọn/Bỏ Chọn ==
-loop Quy trình thao tác click trên màn
-  User -> UI: Tick/Bỏ Tick vào ghế cụ thể
-  UI -> UI: Kiểm tra số lượng tối đa (ví dụ 8 ghế/luợt)
-  UI -> UI: Cập nhật biến LocalState: selectedSeats + totalAmount
+== Chọn/Bỏ chọn ghế ==
+loop Mỗi lần người dùng click ghế
+  User -> UI: Chọn hoặc bỏ chọn một ghế
+  UI -> UI: Kiểm tra ghế hợp lệ và chưa bị khóa
+  UI -> UI: Cập nhật selectedSeats và tổng tiền
 end
 
-User -> UI: Bấm Sang bước Kế (Tiếp Tục thanh toán)
-UI -> UI: Check > 0 ghế đã chọn ? Chuyển Router (truyền selectedSeats qua trang sau) : Báo lỗi
+User -> UI: Bấm Tiếp tục
+UI -> UI: Kiểm tra có ít nhất 1 ghế
+UI --> User: Chuyển sang bước chọn đồ ăn/xác nhận
 @enduml
-

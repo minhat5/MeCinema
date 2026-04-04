@@ -1,0 +1,65 @@
+@startuml
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0F172A
+  LifeLineBorderColor #334155
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #334155
+}
+
+title Sequence - Quản lý cụm rạp
+
+actor Admin as "Quản trị viên"
+participant UI as "ManageCinemasPage"
+participant Hook as "useAdminCinemas/useCreateCinema/..."
+participant API as "apiClient"
+participant Sec as "@PreAuthorize(ADMIN)"
+participant Ctl as "AdminCinemaController"
+participant Svc as "CinemaService"
+database Repo as "CinemaRepository"
+
+== Tải danh sách cụm rạp ==
+Admin -> UI: Mở /admin/cinemas
+UI -> Hook: useAdminCinemas({page, limit, search})
+alt Có từ khóa
+  Hook -> API: GET /api/cinemas/search?q&page&size
+else Không có từ khóa
+  Hook -> API: GET /api/cinemas?page&size
+end
+API -> Sec: Kiểm tra quyền ADMIN
+Sec -> Ctl: searchCinemas/getAllCinemas
+Ctl -> Svc: search/findAll
+Svc -> Repo: query theo điều kiện
+Repo --> Svc: Page<Cinema>
+Svc --> Ctl: Kết quả phân trang
+Ctl --> API: 200 CinemaApiResponse
+API --> UI: Hiển thị bảng dữ liệu
+
+== Tạo/Cập nhật/Xóa ==
+alt Tạo cụm rạp
+  UI -> Hook: useCreateCinema(payload)
+  Hook -> API: POST /api/cinemas
+  API -> Ctl: createCinema(request)
+  Ctl -> Svc: create(request)
+  Svc -> Repo: save(cinema)
+  Repo --> Svc: Cinema
+  Svc --> Ctl: Cinema
+  Ctl --> API: 201
+else Cập nhật cụm rạp
+  UI -> Hook: useUpdateCinema(payload)
+  Hook -> API: PUT /api/cinemas/{id}
+  API -> Ctl: updateCinema(id, request)
+  Ctl -> Svc: update(id, request)
+  Svc -> Repo: save(updatedCinema)
+  Ctl --> API: 200
+else Xóa cụm rạp
+  UI -> Hook: useDeleteCinema(id)
+  Hook -> API: DELETE /api/cinemas/{id}
+  API -> Ctl: deleteCinema(id)
+  Ctl -> Svc: delete(id)
+  Svc -> Repo: deleteById(id)
+  Ctl --> API: 200
+end
+API --> UI: Invalidate query và tải lại danh sách
+@enduml
+

@@ -10,25 +10,36 @@ skinparam sequence {
 title Sequence - Xem lịch chiếu
 
 actor User as "Khách/Thành viên"
-participant UI as "ShowtimePage/MovieDetail"
-participant Hook as "useShowtimes"
+participant UI as "MovieDetailPage/SchedulePage"
+participant Hook as "useShowtimes/useScheduleShowtimes"
 participant API as "apiClient"
 participant Ctl as "ShowtimeController"
-participant Svc as "ShowtimeServiceImpl"
+participant Svc as "ShowtimeService"
 database Repo as "ShowtimeRepository"
 
-== Khách xem lịch chiếu ==
-User -> UI: Chọn ngày, chọn phim, hoặc chọn cụm rạp
-UI -> Hook: useShowtimes({movieId, date, cinemaId})
-Hook -> API: GET /api/showtimes?movieId&date&cinemaId
-API -> Ctl: getShowtimes(movieId, date, cinemaId)
-Ctl -> Svc: findByConditions(movieId, date, cinemaId)
-Svc -> Repo: queryByCinemaAndMovieAndDate(...)
+== Xem lịch chiếu theo phim ==
+User -> UI: Chọn phim cần xem lịch
+UI -> Hook: useShowtimes({movieId})
+Hook -> API: GET /api/showtimes/movie/{movieId}
+API -> Ctl: getShowtimesByMovie(movieId)
+Ctl -> Svc: getShowtimesByMovie(movieId)
+Svc -> Repo: findByMovieId(...)
 Repo --> Svc: List<Showtime>
-Svc --> Ctl: List<ShowtimeDTO> (nhóm dữ liệu theo rạp/ngày)
-Ctl --> API: 200 OK
-API --> Hook: data
-Hook --> UI: render danh sách nhóm theo Cụm rạp / Giờ
-UI --> User: Hiển thị giao diện danh sách suất chiếu
-@enduml
+Svc --> Ctl: List<ShowtimeDTO>
+Ctl --> API: 200 ApiResponse<List<ShowtimeDTO>>
+API --> Hook: Danh sách suất chiếu
+Hook --> UI: Nhóm theo ngày và render giờ chiếu
 
+== Xem lịch chiếu tổng quát có phân trang ==
+User -> UI: Mở trang lịch chiếu tổng hợp
+UI -> Hook: useScheduleShowtimes({page,limit,sort})
+Hook -> API: GET /api/showtimes?page&size&sortBy&sortDirection
+API -> Ctl: getAllShowtimes(...)
+Ctl -> Svc: getAllShowtimes(pageable)
+Svc -> Repo: findAll(pageable)
+Repo --> Svc: Page<Showtime>
+Svc --> Ctl: PaginatedResponse<ShowtimeDTO>
+Ctl --> API: 200 ApiResponse<PaginatedResponse>
+API --> Hook: Dữ liệu phân trang
+Hook --> UI: Hiển thị lịch chiếu theo trang
+@enduml

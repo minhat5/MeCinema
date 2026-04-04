@@ -6,48 +6,47 @@ skinparam activity {
   ArrowColor #0F172A
 }
 
-title Activity - Quản lý user
+title Activity - Quản lý người dùng
 
 start
-:Admin vào module quản lý user;
-if (Đúng quyền Admin?) then (Có)
+:Quản trị viên vào module quản lý người dùng;
+if (Đúng quyền ADMIN?) then (Có)
   :Tải danh sách người dùng;
 else (Không)
   :Chặn truy cập;
   stop
 endif
 
-:Áp dụng tìm kiếm / lọc vai trò / phân trang;
+:Áp dụng tìm kiếm, lọc vai trò, phân trang;
 
-if (Chọn tạo user?) then (Có)
-  :Nhập thông tin user mới;
+if (Chọn tạo người dùng?) then (Có)
+  :Nhập thông tin người dùng mới;
   if (Email chưa tồn tại?) then (Có)
     :Tạo tài khoản;
     :Thông báo thành công;
   else (Không)
     :Thông báo trùng email;
   endif
-elseif (Chọn cập nhật user?) then (Có)
-  :Sửa thông tin user;
-  if (User tồn tại và dữ liệu hợp lệ?) then (Có)
+elseif (Chọn cập nhật người dùng?) then (Có)
+  :Sửa thông tin người dùng;
+  if (Dữ liệu hợp lệ?) then (Có)
     :Lưu thay đổi;
     :Thông báo thành công;
   else (Không)
     :Thông báo không cập nhật được;
   endif
-else (Xóa user)
+else (Xóa người dùng)
   :Xác nhận xóa;
-  if (User tồn tại?) then (Có)
-    if (Là tài khoản Admin?) then (Có)
-      :Từ chối xóa tài khoản Admin;
+  if (Người dùng tồn tại?) then (Có)
+    if (Là tài khoản ADMIN?) then (Có)
+      :Từ chối xóa tài khoản ADMIN;
     else (Không)
       :Xóa tài khoản;
       :Thông báo thành công;
     endif
   else (Không)
-    :Thông báo không tìm thấy user;
+    :Thông báo không tìm thấy người dùng;
   endif
 endif
 stop
 @enduml
-
