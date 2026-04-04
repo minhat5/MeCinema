@@ -1,3 +1,9 @@
+/**
+ * PaymentForm.tsx
+ * Chỉ chịu trách nhiệm: HIỂN THỊ UI thanh toán.
+ * Tất cả logic polling được delegate sang usePaymentStatus.
+ * Tất cả API calls qua usePayment hook.
+ */
 import {
   Stack,
   Text,
@@ -12,10 +18,9 @@ import {
   Box,
 } from '@mantine/core';
 import { useState, useEffect } from 'react';
-import { usePayment } from '../hooks/usePayment';
 import { useNavigate } from 'react-router-dom';
-import apiClient from '@/lib/api-client';
-import { notifications } from '@mantine/notifications';
+import { usePayment } from '../hooks/usePayment';
+import { usePaymentStatus } from '../hooks/usePaymentStatus';
 import { IconClockX } from '@tabler/icons-react';
 
 type Props = {
@@ -27,87 +32,29 @@ type Props = {
 
 export function PaymentForm({ bookingId, totalPrice, isExpired = false, onPaymentSuccess }: Props) {
   const [qrUrl, setQrUrl] = useState('');
-  const [isRedirecting, setIsRedirecting] = useState(false);
   const navigate = useNavigate();
   const { mutate: pay, isPending } = usePayment();
+
+  const { isRedirecting, checkManually } = usePaymentStatus({
+    bookingId,
+    qrUrl,
+    isExpired,
+    onSuccess: onPaymentSuccess,
+  });
 
   const generateQRCode = () => {
     if (isExpired) return;
     pay(bookingId, {
-      onSuccess: (res) => {
-        setQrUrl(res.data.paymentUrl);
-      },
+      onSuccess: (res) => setQrUrl(res.data.paymentUrl),
     });
   };
 
+  // Tự động tạo QR khi component mount
   useEffect(() => {
     if (bookingId && !qrUrl && !isPending && !isExpired) {
       generateQRCode();
     }
   }, [bookingId, qrUrl, isPending, isExpired]);
-
-  // Dừng polling khi đã hết hạn
-  useEffect(() => {
-    if (!qrUrl || isRedirecting || isExpired) return;
-
-    const interval = setInterval(() => {
-      apiClient
-        .get(`/bookings/${bookingId}/payments/status?t=${Date.now()}`)
-        .then((res) => {
-          const isSuccess = (res as any).data ?? res;
-          if (isSuccess === true) {
-            clearInterval(interval);
-            setIsRedirecting(true);
-            notifications.show({
-              title: 'Thành công',
-              message: 'Hệ thống đã nhận được thanh toán!',
-              color: 'green',
-            });
-            setTimeout(() => {
-              onPaymentSuccess?.();
-            }, 1000);
-          }
-        })
-        .catch(() => {});
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [bookingId, qrUrl, isRedirecting, navigate, isExpired]);
-
-  const handleManualConfirm = () => {
-    setIsRedirecting(true);
-    apiClient
-      .get(`/bookings/${bookingId}/payments/status?t=${Date.now()}`)
-      .then((res) => {
-        const isSuccess = (res as any).data ?? res;
-        if (isSuccess === true) {
-          notifications.show({
-            title: 'Thành công',
-            message: 'Đã xác nhận thanh toán!',
-            color: 'green',
-          });
-          setTimeout(() => {
-            onPaymentSuccess?.();
-          }, 1500);
-        } else {
-          setIsRedirecting(false);
-          notifications.show({
-            title: 'Chưa nhận được thanh toán',
-            message:
-              'Hệ thống chưa ghi nhận giao dịch. Vui lòng kiểm tra nội dung chuyển khoản!',
-            color: 'red',
-          });
-        }
-      })
-      .catch(() => {
-        setIsRedirecting(false);
-        notifications.show({
-          title: 'Lỗi',
-          message: 'Không thể kiểm tra trạng thái thanh toán lúc này.',
-          color: 'red',
-        });
-      });
-  };
 
   // ── UI HẾT HẠN ────────────────────────────────────────────────
   if (isExpired) {
@@ -123,33 +70,17 @@ export function PaymentForm({ bookingId, totalPrice, isExpired = false, onPaymen
           <ThemeIcon size={80} radius="xl" color="gray.7" variant="filled">
             <IconClockX size={44} />
           </ThemeIcon>
-
           <Box>
-            <Title order={3} c="gray.3" mb="xs">
-              Đơn hàng đã hết hạn
-            </Title>
+            <Title order={3} c="gray.3" mb="xs">Đơn hàng đã hết hạn</Title>
             <Text c="gray.5" size="sm" maw={320} mx="auto">
-              Thời gian giữ ghế của bạn đã hết. Đơn hàng này đã bị hủy tự
-              động và ghế đã được nhả ra.
+              Thời gian giữ ghế của bạn đã hết. Đơn hàng này đã bị hủy tự động và ghế đã được nhả ra.
             </Text>
           </Box>
-
           <Stack gap="sm" w="100%">
-            <Button
-              color="yellow"
-              size="md"
-              radius="md"
-              fullWidth
-              onClick={() => navigate('/phim')}
-            >
+            <Button color="yellow" size="md" radius="md" fullWidth onClick={() => navigate('/phim')}>
               Chọn suất chiếu khác
             </Button>
-            <Button
-              variant="subtle"
-              color="gray"
-              size="sm"
-              onClick={() => navigate('/')}
-            >
+            <Button variant="subtle" color="gray" size="sm" onClick={() => navigate('/')}>
               Về trang chủ
             </Button>
           </Stack>
@@ -171,9 +102,7 @@ export function PaymentForm({ bookingId, totalPrice, isExpired = false, onPaymen
         {!qrUrl ? (
           <Stack align="center">
             <Loader color="yellow" size="xl" />
-            <Text c="gray.4" fw={700}>
-              ĐANG TẠO MÃ THANH TOÁN...
-            </Text>
+            <Text c="gray.4" fw={700}>ĐANG TẠO MÃ THANH TOÁN...</Text>
           </Stack>
         ) : (
           <>
@@ -181,12 +110,7 @@ export function PaymentForm({ bookingId, totalPrice, isExpired = false, onPaymen
               QUÉT MÃ VIETQR ĐỂ XÁC NHẬN
             </Title>
 
-            <Paper
-              p="sm"
-              bg="white"
-              radius="md"
-              style={{ boxShadow: '0 0 30px rgba(225, 29, 72, 0.3)' }}
-            >
+            <Paper p="sm" bg="white" radius="md" style={{ boxShadow: '0 0 30px rgba(225, 29, 72, 0.3)' }}>
               <Image src={qrUrl} w={300} alt="VietQR" />
             </Paper>
 
@@ -200,18 +124,11 @@ export function PaymentForm({ bookingId, totalPrice, isExpired = false, onPaymen
               {isRedirecting ? (
                 <Group gap="xs" justify="center">
                   <Loader color="green" size="xs" />
-                  <Text c="green.4" fw={700}>
-                    ĐÃ NHẬN THANH TOÁN!
-                  </Text>
+                  <Text c="green.4" fw={700}>ĐÃ NHẬN THANH TOÁN!</Text>
                 </Group>
               ) : (
                 <Stack gap="md" w="100%">
-                  <Text
-                    c="gray.5"
-                    size="sm"
-                    fw={600}
-                    style={{ fontStyle: 'italic' }}
-                  >
+                  <Text c="gray.5" size="sm" fw={600} style={{ fontStyle: 'italic' }}>
                     Vui lòng quét mã trên ứng dụng ngân hàng của bạn
                   </Text>
                   <Button
@@ -219,17 +136,12 @@ export function PaymentForm({ bookingId, totalPrice, isExpired = false, onPaymen
                     size="lg"
                     fullWidth
                     radius="md"
-                    onClick={handleManualConfirm}
+                    onClick={checkManually}
                     loading={isRedirecting}
                   >
                     TÔI ĐÃ CHUYỂN TIỀN XONG
                   </Button>
-                  <Button
-                    variant="subtle"
-                    color="gray.4"
-                    onClick={generateQRCode}
-                    loading={isPending}
-                  >
+                  <Button variant="subtle" color="gray.4" onClick={generateQRCode} loading={isPending}>
                     Mã lỗi/Giao dịch nghi ngờ? Tạo lại mã thanh toán
                   </Button>
                 </Stack>
@@ -237,7 +149,6 @@ export function PaymentForm({ bookingId, totalPrice, isExpired = false, onPaymen
             </Stack>
 
             <Divider w="100%" color="gray.8" style={{ borderStyle: 'dashed' }} />
-
             <Text size="xs" c="gray.6">
               Vui lòng nhấn xác nhận sau khi quét mã thành công.
             </Text>
