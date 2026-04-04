@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
-import { createPaymentApi } from '../services/booking.service';
+import { createPaymentApi } from '../services/payment.service';
 import type { ApiResponse } from '@shared/index';
 export const usePayment = () => {
   return useMutation({

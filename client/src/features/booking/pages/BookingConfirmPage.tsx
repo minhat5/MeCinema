@@ -1,5 +1,10 @@
-import { useParams, Link, useBlocker, useNavigate } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+/**
+ * BookingConfirmPage.tsx
+ * Chỉ chịu trách nhiệm: orchestrate layout + delegate logic sang hooks.
+ * Tất cả navigation guard và cancellation logic → useBookingGuard.
+ */
+import { useParams, Link } from 'react-router-dom';
+import { useState } from 'react';
 import {
   Container,
   Grid,
@@ -17,40 +22,28 @@ import {
   ThemeIcon,
 } from '@mantine/core';
 import { IconAlertTriangle } from '@tabler/icons-react';
+import { useNavigate } from 'react-router-dom';
 import { useBookingDetail } from '../hooks/useBooking';
+import { useBookingGuard } from '../hooks/useBookingGuard';
 import { PaymentForm } from '../components/PaymentForm';
 import { BookingSummary } from '../components/BookingSummary';
-import { cancelBookingApi } from '../services/booking.service';
 import type { ShowtimeType, RoomType } from '@shared/index';
-import { notifications } from '@mantine/notifications';
 import { BookingTimer } from '../components/BookingTimer';
 
 export default function BookingConfirmPage() {
   const { bookingId } = useParams();
+  const navigate = useNavigate();
   const { data: booking, isLoading } = useBookingDetail(bookingId!);
   const [isExpired, setIsExpired] = useState(false);
-  const isPaidRef = useRef(false); // dùng ref thay state để cập nhật đồng bộ
-  const navigate = useNavigate();
-  const [isCancelling, setIsCancelling] = useState(false);
 
-  // Chặn điều hướng khi đang trong quá trình thanh toán
-  // KHÔNG chặn khi: đã hết hạn, đã thanh toán thành công
-  const blocker = useBlocker(({ currentLocation, nextLocation }) => {
-    const isLeavingPage = currentLocation.pathname !== nextLocation.pathname;
-    return isLeavingPage && !isExpired && !isPaidRef.current;
-  });
-
-  // Chặn đóng tab / refresh browser (chỉ khi chưa hết hạn và chưa thanh toán)
-  useEffect(() => {
-    if (isExpired || isPaidRef.current) return;
-
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isExpired]);
+  const {
+    blocker,
+    isCancelling,
+    handleExpire,
+    handleConfirmLeave,
+    handleStay,
+    markPaid,
+  } = useBookingGuard({ bookingId: bookingId!, isExpired });
 
   if (isLoading || !booking) {
     return (
@@ -60,33 +53,13 @@ export default function BookingConfirmPage() {
     );
   }
 
-  const handleExpire = () => {
-    cancelBookingApi(bookingId!).catch(() => {});
+  const onExpire = () => {
+    handleExpire();
     setIsExpired(true);
-    notifications.show({
-      title: 'Đơn hàng đã hết hạn',
-      message: 'Bạn đã quá thời gian thanh toán. Ghế đã được nhả ra tự động.',
-      color: 'red',
-      autoClose: 8000,
-    });
   };
 
-  // Người dùng xác nhận hủy trong modal
-  const handleConfirmLeave = async () => {
-    setIsCancelling(true);
-    await cancelBookingApi(bookingId!).catch(() => {});
-    setIsCancelling(false);
-    blocker.proceed?.();
-  };
-
-  // Người dùng chọn ở lại
-  const handleStay = () => {
-    blocker.reset?.();
-  };
-
-  // Thanh toán thành công — đánh dấu ref đồng bộ rồi navigate ngay
-  const handlePaymentSuccess = () => {
-    isPaidRef.current = true; // đồng bộ, blocker thấy ngay lập tức
+  const onPaymentSuccess = () => {
+    markPaid();
     navigate(`/booking/result/${bookingId}`);
   };
 
@@ -101,10 +74,7 @@ export default function BookingConfirmPage() {
         radius="lg"
         size="sm"
         styles={{
-          content: {
-            background: '#0f172a',
-            border: '1px solid rgba(255,255,255,0.1)',
-          },
+          content: { background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)' },
           overlay: { backdropFilter: 'blur(4px)' },
         }}
       >
@@ -112,24 +82,16 @@ export default function BookingConfirmPage() {
           <ThemeIcon size={64} radius="xl" color="orange.7" variant="light">
             <IconAlertTriangle size={36} />
           </ThemeIcon>
-
           <Box ta="center">
-            <Title order={3} c="white" mb={8}>
-              Bạn muốn hủy đặt vé?
-            </Title>
+            <Title order={3} c="white" mb={8}>Bạn muốn hủy đặt vé?</Title>
             <Text c="gray.4" size="sm">
               Nếu rời khỏi trang này, đơn hàng sẽ bị hủy và{' '}
-              <Text component="span" c="orange.4" fw={700}>
-                ghế sẽ được nhả ra ngay lập tức
-              </Text>
-              .
+              <Text component="span" c="orange.4" fw={700}>ghế sẽ được nhả ra ngay lập tức</Text>.
             </Text>
           </Box>
-
           <Group w="100%" grow>
             <Button
               variant="default"
-              color="gray"
               radius="md"
               onClick={handleStay}
               disabled={isCancelling}
@@ -137,12 +99,7 @@ export default function BookingConfirmPage() {
             >
               Ở lại thanh toán
             </Button>
-            <Button
-              color="red"
-              radius="md"
-              loading={isCancelling}
-              onClick={handleConfirmLeave}
-            >
+            <Button color="red" radius="md" loading={isCancelling} onClick={handleConfirmLeave}>
               Hủy đặt vé
             </Button>
           </Group>
@@ -151,27 +108,17 @@ export default function BookingConfirmPage() {
 
       <Container size="xl">
         <Breadcrumbs mb="xl">
-          <Anchor component={Link} to="/" c="gray.5">
-            TRANG CHỦ
-          </Anchor>
-          <Text size="xs" c="yellow.5" fw={700}>
-            THANH TOÁN
-          </Text>
+          <Anchor component={Link} to="/" c="gray.5">TRANG CHỦ</Anchor>
+          <Text size="xs" c="yellow.5" fw={700}>THANH TOÁN</Text>
         </Breadcrumbs>
 
-        <Title order={2} c="white" mb="xl">
-          Xác nhận đơn hàng
-        </Title>
+        <Title order={2} c="white" mb="xl">Xác nhận đơn hàng</Title>
 
         {!isExpired && (
           <Box w={200} mb="xl">
             <BookingTimer
-              expiresAt={
-                new Date(
-                  new Date(booking.createdAt).getTime() + 2 * 60 * 1000,
-                )
-              }
-              onExpire={handleExpire}
+              expiresAt={new Date(new Date(booking.createdAt).getTime() + 2 * 60 * 1000)}
+              onExpire={onExpire}
             />
           </Box>
         )}
@@ -182,33 +129,15 @@ export default function BookingConfirmPage() {
               bookingId={booking._id}
               totalPrice={booking.totalPrice}
               isExpired={isExpired}
-              onPaymentSuccess={handlePaymentSuccess}
+              onPaymentSuccess={onPaymentSuccess}
             />
           </Grid.Col>
 
           <Grid.Col span={{ base: 12, md: 5 }}>
             <BookingSummary
-              showtime={
-                booking.showtimeId as unknown as ShowtimeType & {
-                  roomId: RoomType;
-                }
-              }
-              selectedSeats={
-                new Map(
-                  ((booking as any).seats ?? []).map((s: any) => [
-                    s.seatId,
-                    s,
-                  ]),
-                )
-              }
-              selectedFoods={
-                new Map(
-                  ((booking as any).foods ?? []).map((f: any) => [
-                    f.foodId,
-                    f,
-                  ]),
-                )
-              }
+              showtime={booking.showtimeId as unknown as ShowtimeType & { roomId: RoomType }}
+              selectedSeats={new Map(((booking as any).seats ?? []).map((s: any) => [s.seatId, s]))}
+              selectedFoods={new Map(((booking as any).foods ?? []).map((f: any) => [f.foodId, f]))}
               totalPrice={booking.totalPrice}
               isPending={false}
               onConfirm={() => {}}
