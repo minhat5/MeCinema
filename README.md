@@ -138,30 +138,18 @@ VITE_API_URL=http://localhost:5000/mecinema/api
 ```
 
 ### 4.4. Lệnh chạy hệ thống
+**Backend**
 
 ```powershell
 cd D:\NNLTTT\FinalProject\MeCinema
 .\mvnw.cmd spring-boot:run
 ```
+**Frontend**
 
 ```powershell
 cd D:\NNLTTT\FinalProject\MeCinema\client
 npm install
 npm run dev
-```
-
-### 4.5. Lệnh build/test
-
-```powershell
-cd D:\NNLTTT\FinalProject\MeCinema
-.\mvnw.cmd test
-.\mvnw.cmd clean package
-```
-
-```powershell
-cd D:\NNLTTT\FinalProject\MeCinema\client
-npm run lint
-npm run build
 ```
 
 ---
