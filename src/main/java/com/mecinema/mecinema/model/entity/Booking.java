@@ -9,8 +9,8 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "bookings")
@@ -64,9 +64,6 @@ public class Booking extends BaseEntity {
     @Column(name = "booking_id")
     private Long id;
 
-    @Version
-    private Long version;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -86,8 +83,8 @@ public class Booking extends BaseEntity {
     private Status status = Status.PENDING;
 
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private Set<Ticket> tickets = new LinkedHashSet<>();
+    private List<Ticket> tickets = new ArrayList<>();
 
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private Set<BookingFood> bookingFoods = new LinkedHashSet<>();
+    private List<BookingFood> bookingFoods = new ArrayList<>();
 }

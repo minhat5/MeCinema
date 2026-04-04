@@ -8,10 +8,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "payments", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "transaction_no")
-})
+@Table(name = "payments")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,9 +22,6 @@ public class Payment extends BaseEntity{
     @Column(name = "payment_id")
     private Long id;
 
-    @Version
-    private Long version;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "booking_id", nullable = false)
     private Booking booking;
@@ -33,8 +30,11 @@ public class Payment extends BaseEntity{
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
 
-    @Column(name = "transaction_no", length = 100, unique = true)
+    @Column(name = "transaction_no", length = 100)
     private String transactionNo;
+
+    @Column(name = "payment_time")
+    private LocalDateTime paymentTime;
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
