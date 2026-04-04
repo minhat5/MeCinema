@@ -125,13 +125,15 @@ export function ComboForm({
       });
       return;
     }
+
     const comboItems = lines
       .filter((l) => l.productId)
       .map((l) => ({
         productId: l.productId,
         quantity: Math.max(1, Math.floor(l.quantity)),
       }));
-    if (!comboItems.length) {
+
+    if (isEdit && !comboItems.length) {
       notifications.show({
         color: 'red',
         title: 'Thiếu thành phần',
@@ -181,15 +183,9 @@ export function ComboForm({
           name: name.trim(),
           price: p,
           image: image.trim(),
-          comboItems,
+          comboItems: [],
           ...(description.trim() ? { description: description.trim() } : {}),
         };
-        if (
-          discountPercentPayload !== undefined &&
-          discountPercentPayload !== null
-        ) {
-          body.discountPercent = discountPercentPayload;
-        }
         await createCombo.mutateAsync(body);
         notifications.show({
           color: 'green',
@@ -235,15 +231,17 @@ export function ComboForm({
         category={PRODUCT_CATEGORY.COMBO}
         disabled={pending}
       />
-      <NumberInput
-        label="Giảm giá (%) — gợi ý so với giá lẻ"
-        min={0}
-        max={100}
-        value={discountPercent}
-        onChange={(v) => setDiscountPercent(typeof v === 'number' ? v : '')}
-        styles={inputStyles}
-        labelProps={{ style: { color: '#c2c6d8' } }}
-      />
+      {isEdit && (
+        <NumberInput
+          label="Giảm giá (%) — gợi ý so với giá lẻ"
+          min={0}
+          max={100}
+          value={discountPercent}
+          onChange={(v) => setDiscountPercent(typeof v === 'number' ? v : '')}
+          styles={inputStyles}
+          labelProps={{ style: { color: '#c2c6d8' } }}
+        />
+      )}
       <Textarea
         label="Mô tả (tuỳ chọn)"
         value={description}
@@ -261,61 +259,63 @@ export function ComboForm({
         />
       )}
 
-      <div className="space-y-2">
-        <p className="text-sm font-semibold text-[#c2c6d8]">Thành phần</p>
-        {lines.map((line, i) => (
-          <div key={i} className="flex flex-wrap gap-2 items-end">
-            <Select
-              placeholder="Sản phẩm lẻ"
-              data={retailOptions}
-              value={line.productId || null}
-              onChange={(v) => setLine(i, { productId: v ?? '' })}
-              searchable
-              className="flex-1 min-w-[200px]"
-              styles={{
-                input: {
-                  backgroundColor: '#060e20',
-                  border: 'none',
-                  color: '#dae2fd',
-                },
-              }}
-            />
-            <NumberInput
-              label="SL"
-              min={1}
-              value={line.quantity}
-              onChange={(v) =>
-                setLine(i, {
-                  quantity: typeof v === 'number' ? v : 1,
-                })
-              }
-              w={90}
-              styles={inputStyles}
-              labelProps={{ style: { color: '#c2c6d8' } }}
-            />
-            <Button
-              type="button"
-              variant="subtle"
-              color="red"
-              size="xs"
-              onClick={() => removeLine(i)}
-            >
-              Xoá dòng
-            </Button>
-          </div>
-        ))}
-        <Button
-          type="button"
-          variant="light"
-          size="xs"
-          onClick={addLine}
-          styles={{
-            root: { backgroundColor: '#222a3d', color: '#dae2fd' },
-          }}
-        >
-          + Thêm dòng
-        </Button>
-      </div>
+      {isEdit && (
+        <div className="space-y-2">
+          <p className="text-sm font-semibold text-[#c2c6d8]">Thành phần</p>
+          {lines.map((line, i) => (
+            <div key={i} className="flex flex-wrap gap-2 items-end">
+              <Select
+                placeholder="Sản phẩm lẻ"
+                data={retailOptions}
+                value={line.productId || null}
+                onChange={(v) => setLine(i, { productId: v ?? '' })}
+                searchable
+                className="flex-1 min-w-[200px]"
+                styles={{
+                  input: {
+                    backgroundColor: '#060e20',
+                    border: 'none',
+                    color: '#dae2fd',
+                  },
+                }}
+              />
+              <NumberInput
+                label="SL"
+                min={1}
+                value={line.quantity}
+                onChange={(v) =>
+                  setLine(i, {
+                    quantity: typeof v === 'number' ? v : 1,
+                  })
+                }
+                w={90}
+                styles={inputStyles}
+                labelProps={{ style: { color: '#c2c6d8' } }}
+              />
+              <Button
+                type="button"
+                variant="subtle"
+                color="red"
+                size="xs"
+                onClick={() => removeLine(i)}
+              >
+                Xoá dòng
+              </Button>
+            </div>
+          ))}
+          <Button
+            type="button"
+            variant="light"
+            size="xs"
+            onClick={addLine}
+            styles={{
+              root: { backgroundColor: '#222a3d', color: '#dae2fd' },
+            }}
+          >
+            + Thêm dòng
+          </Button>
+        </div>
+      )}
 
       <Button
         fullWidth
