@@ -9,7 +9,7 @@ skinparam usecase {
 actor "Khách vãng lai\n(Guest)" as Guest
 actor "Khách hàng\n(Customer)" as Customer
 actor "Quản trị viên\n(Admin)" as Admin
-actor "Cổng thanh toán\n(VNPAY/Momo)" as PG
+actor "Cổng thanh toán" as PG
 
 Guest <|-- Customer
 
@@ -45,7 +45,6 @@ rectangle "Hệ thống Website Đặt vé xem phim" {
         usecase "Chọn Đồ ăn/Thức uống" as UC_SelectFB
         usecase "Thanh toán đơn hàng" as UC_Payment
         usecase "Xem Lịch sử đặt vé" as UC_ViewHistory
-        usecase "Thống kê Doanh thu" as UC_Report
     }
 }
 
@@ -82,6 +81,5 @@ Admin --> UC_ManageCinemas
 Admin --> UC_ManageSeats
 Admin --> UC_ManageFB
 Admin --> UC_ManageShowtimes
-Admin --> UC_Report
 
 @enduml
