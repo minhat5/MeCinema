@@ -1,6 +1,13 @@
 import apiClient from '@/lib/api-client';
 import type { ApiResponse } from '@shared/index';
 
+const unwrapApiData = <T>(res: unknown): T => {
+  if (res && typeof res === 'object' && 'data' in (res as Record<string, unknown>)) {
+    return (res as { data: T }).data;
+  }
+  return res as T;
+};
+
 export interface FoodType {
   id: number;
   name: string;
@@ -38,7 +45,7 @@ export const getAvailableFoodsApi = async (
   });
   return {
     success: true,
-    data: res.data,
+    data: unwrapApiData<FoodResponse>(res),
   };
 };
 
@@ -57,7 +64,7 @@ export const getAllFoodsApi = async (
   });
   return {
     success: true,
-    data: res.data,
+    data: unwrapApiData<FoodResponse>(res),
   };
 };
 
@@ -66,7 +73,7 @@ export const getFoodByIdApi = async (id: number): Promise<ApiResponse<FoodType>>
   const res = await apiClient.get<FoodType>(`/public/foods/${id}`);
   return {
     success: true,
-    data: res.data,
+    data: unwrapApiData<FoodType>(res),
   };
 };
 
@@ -90,7 +97,7 @@ export const searchFoodsApi = async (
   const res = await apiClient.get<FoodResponse>(`/public/foods/search`, { params });
   return {
     success: true,
-    data: res.data,
+    data: unwrapApiData<FoodResponse>(res),
   };
 };
 
@@ -108,7 +115,7 @@ export const getFoodsByTypeApi = async (
   });
   return {
     success: true,
-    data: res.data,
+    data: unwrapApiData<FoodResponse>(res),
   };
 };
 
