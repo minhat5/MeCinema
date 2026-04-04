@@ -1,24 +1,12 @@
-/**
- * MoviesPage — Trang danh sách phim
- *
- * Tabs: "Đang chiếu" | "Sắp chiếu"
- * Filter: Chọn chi nhánh (tỉnh/thành phố)
- * Grid: MovieCard với hover overlay
- * Compose: CitySelector + MovieCard
- */
-
 import { useState } from 'react';
 import { Container, Loader } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
 import { useSearchParams } from 'react-router-dom';
 import {
   useNowShowing,
   useUpcoming,
   useMovies,
-  useCinemaCities,
 } from '../hooks/useMovies';
 import MovieCard from '../../../components/common/MovieCard';
-import CitySelector from '../components/CitySelector';
 import type { MovieResponse } from '../services/movies.service';
 
 type Tab = 'now-showing' | 'upcoming';
@@ -26,9 +14,6 @@ type Tab = 'now-showing' | 'upcoming';
 export default function MoviesPage() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<Tab>('now-showing');
-  const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [cityModalOpened, { open: openCityModal, close: closeCityModal }] =
-    useDisclosure(false);
   const searchKeyword = searchParams.get('search')?.trim() || '';
   const isSearchMode = searchKeyword.length > 0;
 
@@ -41,7 +26,6 @@ export default function MoviesPage() {
     limit: 30,
     search: searchKeyword || undefined,
   });
-  const { data: citiesData } = useCinemaCities();
 
   // Chọn data theo tab
   const movies: MovieResponse[] =
@@ -56,8 +40,6 @@ export default function MoviesPage() {
     : activeTab === 'now-showing'
       ? nowShowingLoading
       : upcomingLoading;
-
-  const cities: string[] = (citiesData as any)?.data || [];
 
   const tabs: { key: Tab; label: string }[] = [
     { key: 'now-showing', label: 'Đang chiếu' },
@@ -101,32 +83,6 @@ export default function MoviesPage() {
 
           {/* Spacer */}
           <div className="flex-1" />
-
-          {/* City Filter Button */}
-          <button
-            onClick={openCityModal}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-orange-600 hover:bg-orange-50 rounded-lg transition-colors duration-200 border border-orange-200"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
-          </button>
         </div>
 
         {/* Movie Grid */}
@@ -160,15 +116,6 @@ export default function MoviesPage() {
           </div>
         )}
       </Container>
-
-      {/* City Selector Modal */}
-      <CitySelector
-        opened={cityModalOpened}
-        onClose={closeCityModal}
-        cities={cities}
-        selectedCity={selectedCity}
-        onSelectCity={setSelectedCity}
-      />
     </div>
   );
 }

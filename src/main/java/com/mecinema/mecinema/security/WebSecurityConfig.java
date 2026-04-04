@@ -44,17 +44,27 @@ public class WebSecurityConfig {
                         .requestMatchers(
                                 "/",
                                 "/api/auth/**",
-                                "/api/movie/**"
+                                "/api/movie/**",
+                                "/api/public/foods/**",
+                                "/api/payments/callback"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/movie/cinemas/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/showtimes/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/rooms/*/seat-map").permitAll()
                         .requestMatchers(
-                                "/api/user/**"
-                        ).authenticated()
-                        .requestMatchers(
+                                "/api/admin/**",
                                 "/api/users/**",
-                                "/api/foods/**"
+                                "/api/foods/**",
+                                "/api/movies/**",
+                                "/api/genres/**",
+                                "/api/cinemas/**",
+                                "/api/rooms/**"
                         ).hasRole("ADMIN")
-                        .anyRequest().authenticated()
+                        .requestMatchers(
+                                "/api/user/**",
+                                "/api/bookings/**"
+                        ).authenticated()
+                        .anyRequest().denyAll()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

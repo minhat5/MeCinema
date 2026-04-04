@@ -78,11 +78,11 @@ function App() {
                     </ProtectedRoute>
                 }
             >
-                <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                <Route index element={<Navigate to="/admin/cinemas" replace />} />
                 {adminChildren.map((child) => (
                     <Route key={child.path} path={child.path} element={child.element} />
                 ))}
-                <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+                <Route path="*" element={<Navigate to="/admin/cinemas" replace />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

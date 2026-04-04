@@ -144,7 +144,7 @@ export const getRelatedMovies = async (
   return { data: response.data.data.filter((movie) => movie._id !== movieId).slice(0, limit) };
 };
 
-export const getCinemas = async (params?: Record<string, any>) => {
+export const getCinemas = async (_params?: Record<string, any>) => {
   // Backend không có API trực tiếp lấy danh sách rạp /cinemas
   // Phải fetch thông qua danh sách showtimes để lấy ra các rạp duy nhất
   const response = await apiClient.get('/showtimes', { params: { size: 1000 } });
