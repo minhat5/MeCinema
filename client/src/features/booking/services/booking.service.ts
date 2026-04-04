@@ -49,7 +49,7 @@ export const getSeatMapApi = async (
     },
     startTime: st.startTime ? String(st.startTime).replace(' ', 'T') : '',
     endTime: st.endTime ? String(st.endTime).replace(' ', 'T') : '',
-    price: 60000, // mock base price as backend might not return it directly here
+    price: Number(st.basePrice) || 60000, // basePrice thật từ ShowtimeDTO, fallback 60000
   };
 
   return {
@@ -190,6 +190,14 @@ export const getBookingDetailApi = async (
     price: s.price || 0,
   }));
 
+  // Map foods từ BookingResponse.FoodSelection
+  const mappedFoods = (res.foods || []).map((f: any) => ({
+    foodId: Number(f.foodId),
+    name: f.name || '',
+    quantity: f.quantity || 1,
+    price: Number(f.price) || 0,
+  }));
+
   const mappedBooking = {
     _id: String(res.bookingId),
     status: res.bookingStatus || 'PENDING',
@@ -198,6 +206,7 @@ export const getBookingDetailApi = async (
     showtimeId: mappedShowtime,
     tickets: mappedTickets,
     seats: mappedSeats,
+    foods: mappedFoods,
   };
 
   return {

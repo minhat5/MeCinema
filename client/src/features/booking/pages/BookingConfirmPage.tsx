@@ -64,7 +64,7 @@ export default function BookingConfirmPage() {
     cancelBookingApi(bookingId!).catch(() => {});
     setIsExpired(true);
     notifications.show({
-      title: '⏰ Đơn hàng đã hết hạn',
+      title: 'Đơn hàng đã hết hạn',
       message: 'Bạn đã quá thời gian thanh toán. Ghế đã được nhả ra tự động.',
       color: 'red',
       autoClose: 8000,
@@ -198,6 +198,14 @@ export default function BookingConfirmPage() {
                   ((booking as any).seats ?? []).map((s: any) => [
                     s.seatId,
                     s,
+                  ]),
+                )
+              }
+              selectedFoods={
+                new Map(
+                  ((booking as any).foods ?? []).map((f: any) => [
+                    f.foodId,
+                    f,
                   ]),
                 )
               }

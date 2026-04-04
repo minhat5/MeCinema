@@ -64,7 +64,11 @@ public class SePayGatewayClient implements PaymentGatewayClient {
         }
 
         try {
-            String url = "https://my.sepay.vn/userapi/transactions/list";
+            // Filter trực tiếp theo nội dung transactionNo + account để tránh scan toàn bộ list
+            String url = "https://my.sepay.vn/userapi/transactions/list"
+                    + "?transaction_content=" + URLEncoder.encode(transactionNo, StandardCharsets.UTF_8)
+                    + "&account_number=" + properties.getAccountNumber()
+                    + "&limit=10";
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "Bearer " + apiToken);

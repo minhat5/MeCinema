@@ -43,7 +43,7 @@ export const SEAT_TYPE = {
 export const PRICE_MULTIPLIER: Record<string, number> = {
   [SEAT_TYPE.NORMAL]: 1,
   [SEAT_TYPE.VIP]: 1.2,
-  [SEAT_TYPE.SWEETBOX]: 2,
+  [SEAT_TYPE.SWEETBOX]: 1.5, // Đồng bộ với backend PricingServiceImpl
 };
 
 export interface SeatConfig {
@@ -106,4 +106,5 @@ export interface MovieType {
   _id: string;
   title: string;
   poster: string;
+  duration?: number;
 }
