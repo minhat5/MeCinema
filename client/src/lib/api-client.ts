@@ -20,7 +20,7 @@ apiClient.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  /** FormData cần boundary tự sinh — bỏ application/json mặc định */
+  /** FormData cần boundary tự sinh - bỏ application/json mặc định */
   if (config.data instanceof FormData && config.headers) {
     delete config.headers['Content-Type'];
   }
@@ -28,10 +28,21 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+const toSafeMessage = (value: unknown): string => {
+  if (typeof value === 'string' && value.trim()) return value.trim();
+  if (value instanceof Error && value.message.trim()) return value.message.trim();
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  return '';
+};
+
 apiClient.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    const requestUrl = String(error.config?.url || '');
+    const isAuthRequest = requestUrl.includes('/auth/login') || requestUrl.includes('/auth/register');
+
+    if (status === 401 && !isAuthRequest) {
       localStorage.removeItem('accessToken');
       if (typeof window !== 'undefined') {
         window.location.href = '/login';
@@ -39,25 +50,23 @@ apiClient.interceptors.response.use(
     }
 
     const responseData = error.response?.data;
-    const validationMessage =
-      typeof responseData === 'object' && responseData
-        ? Array.isArray((responseData as any).errors) && (responseData as any).errors.length > 0
-          ? String((responseData as any).errors[0])
-          : typeof (responseData as any).data === 'object' && (responseData as any).data
-            ? Object.values((responseData as any).data)
-                .map((v) => String(v))
-                .join(', ')
-            : ''
-        : '';
+    const rawMessage =
+      (typeof responseData === 'object' && responseData && (responseData as { message?: unknown }).message) ||
+      (Array.isArray((responseData as { errors?: unknown[] } | undefined)?.errors)
+        ? (responseData as { errors: unknown[] }).errors[0]
+        : undefined) ||
+      (typeof responseData === 'string' ? responseData : undefined);
+
+    const resolvedMessage = toSafeMessage(rawMessage);
+    const lowerMessage = resolvedMessage.toLowerCase();
+
     const message =
-      (typeof responseData === 'object' && responseData?.message) ||
-      validationMessage ||
-      (typeof responseData === 'string' &&
-      responseData.includes('Cannot') &&
-      responseData.includes('/auth/')
-        ? 'Sai endpoint API. Hãy kiểm tra VITE_API_URL, cần có /api ở cuối.'
-        : '') ||
-      'Lỗi hệ thống';
+      status === 401 ||
+      lowerMessage.includes('bad credentials') ||
+      lowerMessage.includes('invalid credentials') ||
+      lowerMessage.includes('username')
+        ? 'Sai tài khoản hoặc mật khẩu.'
+        : resolvedMessage || 'Đã có lỗi xảy ra. Vui lòng thử lại.';
 
     return Promise.reject(new Error(message));
   },
