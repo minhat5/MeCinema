@@ -1,0 +1,35 @@
+@startuml
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  ArrowColor #0F172A
+}
+
+title Activity - Chọn đồ ăn và thức uống
+
+start
+:Người dùng vào bước chọn đồ ăn;
+:Gửi yêu cầu lấy menu món đang bán;
+if (Tải menu thành công?) then (Có)
+  :Hiển thị danh sách món;
+else (Không)
+  :Thông báo lỗi tải dữ liệu;
+  stop
+endif
+
+repeat
+  :Người dùng tăng/giảm số lượng món;
+  if (Số lượng về 0?) then (Có)
+    :Loại món khỏi giỏ;
+  else (Không)
+    :Cập nhật món trong giỏ;
+  endif
+  :Tính lại tổng tiền tạm tính;
+repeat while (Tiếp tục chỉnh món?) is (Có)
+
+:Người dùng bấm Tiếp tục;
+:Chuyển sang bước xác nhận đặt vé/thanh toán;
+stop
+@enduml
+

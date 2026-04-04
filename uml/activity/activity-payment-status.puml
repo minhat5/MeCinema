@@ -1,0 +1,30 @@
+@startuml
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  ArrowColor #0F172A
+}
+
+title Activity - Theo dõi trạng thái thanh toán
+
+start
+:Người dùng mở màn kết quả thanh toán;
+repeat
+  :Gửi yêu cầu kiểm tra trạng thái thanh toán;
+  if (Thanh toán thành công?) then (Có)
+    :Hiển thị kết quả thành công;
+    stop
+  else (Không)
+    if (Đã quá thời gian chờ?) then (Có)
+      :Hiển thị thanh toán thất bại/hết hạn;
+      stop
+    else (Chưa)
+      :Tiếp tục chờ và kiểm tra lại;
+    endif
+  endif
+repeat while (Tiếp tục kiểm tra?) is (Có)
+
+stop
+@enduml
+

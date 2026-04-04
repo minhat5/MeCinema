@@ -1,0 +1,27 @@
+@startuml
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  ArrowColor #0F172A
+}
+
+title Activity - Hủy đặt vé
+
+start
+:Người dùng mở chi tiết đơn đặt vé;
+if (Đơn ở trạng thái cho phép hủy?) then (Có)
+  :Người dùng xác nhận hủy;
+  :Gửi yêu cầu hủy booking;
+  if (Hủy thành công?) then (Có)
+    :Cập nhật trạng thái đơn đã hủy;
+    :Giải phóng ghế đã giữ;
+  else (Không)
+    :Thông báo không thể hủy đơn;
+  endif
+else (Không)
+  :Thông báo đơn không thể hủy;
+endif
+stop
+@enduml
+
