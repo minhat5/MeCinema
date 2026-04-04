@@ -67,7 +67,7 @@ export const createBookingApi = async (
   const payLoad = {
     showtimeId: Number((data as any).showtimeId),
     seatIds: (data as any).seats.map((s: any) => Number(s.seatId)),
-    foods: [], // Food selection not yet implemented in frontend payload
+    foods: (data as any).foods || [], // Include food selections
   };
   const res = await apiClient.post('/bookings', payLoad);
   const responseData = (res as any).data || res;

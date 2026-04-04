@@ -9,6 +9,7 @@ import {
   Image,
   Box,
   Center,
+  Badge,
 } from '@mantine/core';
 import type {
   SeatSelection,
@@ -17,10 +18,12 @@ import type {
   MovieType,
 } from '@shared/index';
 import { SEAT_TYPE } from '@shared/index';
+import type { SelectedFood } from './FoodSelection';
 
 type Props = {
   showtime: ShowtimeType & { roomId: RoomType };
   selectedSeats: Map<string, SeatSelection>;
+  selectedFoods?: Map<number, SelectedFood>;
   totalPrice: number;
   isPending: boolean;
   onConfirm: () => void;
@@ -36,12 +39,14 @@ const SEAT_LABEL: Record<string, string> = {
 export function BookingSummary({
   showtime,
   selectedSeats,
+  selectedFoods = new Map(),
   totalPrice,
   isPending,
   onConfirm,
   isConfirm = false,
 }: Props) {
   const seats = Array.from(selectedSeats.values());
+  const foods = Array.from(selectedFoods.values());
   const movie = showtime.movieId as unknown as MovieType;
 
   return (
@@ -139,7 +144,39 @@ export function BookingSummary({
 
         <Divider color="gray.8" />
 
-        {/* Total Price */}
+        {/* Selected Foods List */}
+        <Box>
+          <Text size="xs" mb="xs" c="gray.5" fw={700} lts={1}>
+            ĐỒ ĂN & THỨC UỐNG
+          </Text>
+          {foods.length === 0 ? (
+            <Center h={60}>
+              <Text size="xs" c="dimmed" fs="italic">
+                Chưa chọn đồ ăn
+              </Text>
+            </Center>
+          ) : (
+            <Stack gap={8}>
+              {foods.map((food) => (
+                <Group key={food.foodId} justify="space-between">
+                  <Group gap={6}>
+                    <Badge size="sm" variant="dot" color="blue">
+                      x{food.quantity}
+                    </Badge>
+                    <Text size="sm" fw={600} lineClamp={1}>
+                      {food.name}
+                    </Text>
+                  </Group>
+                  <Text size="sm" fw={700}>
+                    {(food.price * food.quantity).toLocaleString('vi-VN')}₫
+                  </Text>
+                </Group>
+              ))}
+            </Stack>
+          )}
+        </Box>
+
+        <Divider color="gray.8" />
         <Group justify="space-between">
           <Text size="sm" fw={700}>
             TẠM TÍNH
