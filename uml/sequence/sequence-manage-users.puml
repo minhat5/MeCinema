@@ -10,25 +10,25 @@ skinparam sequence {
 title Sequence - Quản lý người dùng
 
 actor Admin
-participant UI as "UsersPage + UserForm"
-participant Hook as "useUsers hooks"
-participant API as "apiClient"
+participant UI as "[[../../client/src/features/admin/users/pages/UsersPage.tsx UsersPage + UserForm]]"
+participant Hook as "[[../../client/src/features/admin/users/hooks/useUsers.ts useUsers hooks]]"
+participant API as "[[../../client/src/lib/api-client.ts apiClient]]"
 participant Sec as "Security + @PreAuthorize"
-participant Ctl as "AdminUserController"
-participant Svc as "UserServiceImpl"
-participant RoleSvc as "RoleService"
-database UserRepo as "UserRepository"
-database RoleRepo as "RoleRepository"
+control Ctl as "[[../../src/main/java/com/mecinema/mecinema/controller/admin/AdminUserController.java AdminUserController]]"
+participant Svc as "[[../../src/main/java/com/mecinema/mecinema/service/impl/UserServiceImpl.java UserServiceImpl]]"
+participant RoleSvc as "[[../../src/main/java/com/mecinema/mecinema/service/RoleService.java RoleService]]"
+database UserRepo as "[[../../src/main/java/com/mecinema/mecinema/repo/UserRepository.java UserRepository]]"
+database RoleRepo as "[[../../src/main/java/com/mecinema/mecinema/repo/RoleRepository.java RoleRepository]]"
 
 == Tải danh sách + tìm kiếm/lọc vai trò ==
 Admin -> UI: Mở /admin/users
-UI -> Hook: useUsers({search,role,page})
+UI -> Hook: [[../../client/src/features/admin/users/hooks/useUsers.ts useUsers({search,role,page})]]
 alt Có search
-  Hook -> API: GET /api/users/search?q&page&size
+  Hook -> API: [[../../client/src/features/admin/users/hooks/useUsers.ts useUsers()]] GET /api/users/search?q&page&size
 else Có lọc vai trò
-  Hook -> API: GET /api/users/role/{role}?page&size
+  Hook -> API: [[../../client/src/features/admin/users/hooks/useUsers.ts useUsers()]] GET /api/users/role/{role}?page&size
 else Mặc định
-  Hook -> API: GET /api/users?page&size
+  Hook -> API: [[../../client/src/features/admin/users/hooks/useUsers.ts useUsers()]] GET /api/users?page&size
 end
 API -> Sec: Check ROLE_ADMIN
 alt Không đủ quyền
@@ -36,8 +36,8 @@ alt Không đủ quyền
   API --> UI: Chặn truy cập
 else Đủ quyền
   Sec -> Ctl: search/getByRole/getAll
-  Ctl -> Svc: findByKeyword / findByRole / findAll
-  Svc -> UserRepo: findAll(spec,pageable)
+  Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/UserService.java findByKeyword/findByRole/findAll]]
+  Svc -> UserRepo: [[../../src/main/java/com/mecinema/mecinema/repo/UserRepository.java findAll(spec,pageable)]]
   UserRepo --> Svc: Page<User>
   Svc --> Ctl: Page<User>
   Ctl --> API: 200
@@ -46,11 +46,11 @@ end
 
 == Tạo người dùng ==
 Admin -> UI: Submit form tạo người dùng
-UI -> Hook: useCreateUser(data)
-Hook -> API: POST /api/users
-API -> Ctl: create(AdminSaveUserRequest)
-Ctl -> Svc: createUser(user)
-Svc -> UserRepo: findByEmail(email)
+UI -> Hook: [[../../client/src/features/admin/users/hooks/useUsers.ts useCreateUser(data)]]
+Hook -> API: [[../../client/src/features/admin/users/hooks/useUsers.ts useCreateUser()]] POST /api/users
+API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/admin/AdminUserController.java#L45 create(AdminSaveUserRequest)]]
+Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/UserService.java createUser(user)]]
+Svc -> UserRepo: [[../../src/main/java/com/mecinema/mecinema/repo/UserRepository.java findByEmail(email)]]
 alt Email đã tồn tại
   UserRepo --> Svc: User
   Svc --> Ctl: IllegalArgumentException
@@ -58,9 +58,9 @@ alt Email đã tồn tại
   API --> UI: Thông báo trùng email
 else Email hợp lệ
   UserRepo --> Svc: empty
-  Svc -> RoleRepo: findByName(role)
+  Svc -> RoleRepo: [[../../src/main/java/com/mecinema/mecinema/repo/RoleRepository.java findByName(role)]]
   RoleRepo --> Svc: Role
-  Svc -> UserRepo: save(encodedPassword)
+  Svc -> UserRepo: [[../../src/main/java/com/mecinema/mecinema/repo/UserRepository.java save(encodedPassword)]]
   UserRepo --> Svc: User
   Svc --> Ctl: User
   Ctl --> API: 200
@@ -69,11 +69,11 @@ end
 
 == Cập nhật người dùng ==
 Admin -> UI: Submit cập nhật người dùng
-UI -> Hook: useUpdateUser(id,data)
-Hook -> API: PUT /api/users/{id}
-API -> Ctl: update(id,user)
-Ctl -> Svc: updateUser(id,user)
-Svc -> UserRepo: findById(id)
+UI -> Hook: [[../../client/src/features/admin/users/hooks/useUsers.ts useUpdateUser(id,data)]]
+Hook -> API: [[../../client/src/features/admin/users/hooks/useUsers.ts useUpdateUser()]] PUT /api/users/{id}
+API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/admin/AdminUserController.java#L54 update(id,user)]]
+Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/UserService.java updateUser(id,user)]]
+Svc -> UserRepo: [[../../src/main/java/com/mecinema/mecinema/repo/UserRepository.java findById(id)]]
 alt Không tìm thấy người dùng
   UserRepo --> Svc: empty
   Svc --> Ctl: EntityNotFoundException
@@ -82,7 +82,7 @@ alt Không tìm thấy người dùng
 else Tìm thấy
   UserRepo --> Svc: User
   opt Đổi email
-    Svc -> UserRepo: findByEmail(newEmail)
+    Svc -> UserRepo: [[../../src/main/java/com/mecinema/mecinema/repo/UserRepository.java findByEmail(newEmail)]]
     alt Email mới đã tồn tại
       UserRepo --> Svc: User
       Svc --> Ctl: IllegalArgumentException
@@ -92,9 +92,9 @@ else Tìm thấy
       UserRepo --> Svc: empty
     end
   end
-  Svc -> RoleRepo: findByName(role)
+  Svc -> RoleRepo: [[../../src/main/java/com/mecinema/mecinema/repo/RoleRepository.java findByName(role)]]
   RoleRepo --> Svc: Role
-  Svc -> UserRepo: save(updatedUser)
+  Svc -> UserRepo: [[../../src/main/java/com/mecinema/mecinema/repo/UserRepository.java save(updatedUser)]]
   UserRepo --> Svc: User
   Svc --> Ctl: User
   Ctl --> API: 200
@@ -103,11 +103,10 @@ end
 
 == Xóa người dùng ==
 Admin -> UI: Xác nhận xóa
-UI -> Hook: useDeleteUser(id)
-Hook -> API: DELETE /api/users/{id}
-API -> Ctl: delete(id)
-Ctl -> Svc: delete(id)
-Svc -> UserRepo: findById(id)
+UI -> API: [[../../client/src/features/admin/users/pages/UsersPage.tsx delete user action (chưa triển khai hook riêng)]] DELETE /api/users/{id}
+API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/admin/AdminUserController.java#L74 delete(id)]]
+Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/UserService.java delete(id)]]
+Svc -> UserRepo: [[../../src/main/java/com/mecinema/mecinema/repo/UserRepository.java findById(id)]]
 alt Không tồn tại
   UserRepo --> Svc: empty
   Svc --> Ctl: EntityNotFoundException
@@ -120,7 +119,7 @@ else Tồn tại
     Ctl --> API: 400 (GlobalExceptionHandler)
     API --> UI: Từ chối xóa admin
   else User thường
-    Svc -> UserRepo: deleteById(id)
+    Svc -> UserRepo: [[../../src/main/java/com/mecinema/mecinema/repo/UserRepository.java deleteById(id)]]
     UserRepo --> Svc: done
     Svc --> Ctl: done
     Ctl --> API: 200

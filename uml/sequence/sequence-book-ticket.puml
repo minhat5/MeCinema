@@ -10,29 +10,29 @@ skinparam sequence {
 title Sequence - Đặt vé trực tuyến
 
 actor Customer as "Khách hàng"
-participant UI as "BookingPage/BookingConfirmPage"
-participant Hook as "useSeatMap/useBooking"
-participant API as "apiClient"
-participant Ctl as "BookingController"
-participant Svc as "BookingService"
-database Repo as "BookingRepository"
+participant UI as "[[../../client/src/features/booking/pages/BookingPage.tsx BookingPage/BookingConfirmPage]]"
+participant Hook as "[[../../client/src/features/booking/hooks/useBooking.ts useCreateBooking]]"
+participant API as "[[../../client/src/lib/api-client.ts apiClient]]"
+control Ctl as "[[../../src/main/java/com/mecinema/mecinema/controller/booking/BookingController.java BookingController]]"
+participant Svc as "[[../../src/main/java/com/mecinema/mecinema/service/BookingService.java BookingService]]"
+database Repo as "[[../../src/main/java/com/mecinema/mecinema/repo/BookingRepository.java BookingRepository]]"
 
 == Chuẩn bị dữ liệu đặt vé ==
 Customer -> UI: Chọn suất chiếu và ghế
-UI -> Hook: Tổng hợp showtimeId, seatIds, foods
+UI -> Hook: [[../../client/src/features/booking/pages/BookingConfirmPage.tsx Tổng hợp showtimeId, seatIds, foods]]
 
 == Tạo đơn đặt vé ==
-UI -> Hook: useBooking.mutate(payload)
-Hook -> API: POST /api/bookings
-API -> Ctl: createBooking(currentUser, BookingRequest)
-Ctl -> Svc: createBooking(userId, request)
+UI -> Hook: [[../../client/src/features/booking/hooks/useBooking.ts useCreateBooking().mutate(payload)]]
+Hook -> API: [[../../client/src/features/booking/services/booking.service.ts createBookingApi(data)]] POST /api/bookings
+API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/booking/BookingController.java createBooking(currentUser, BookingRequest)]]
+Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/BookingService.java createBooking(userId, request) ]]
 Svc -> Svc: Kiểm tra ghế còn trống và dữ liệu hợp lệ
 alt Dữ liệu không hợp lệ hoặc ghế đã có người đặt
   Svc --> Ctl: Ném lỗi nghiệp vụ
   Ctl --> API: 400/409
   API --> UI: Thông báo đặt vé thất bại
 else Hợp lệ
-  Svc -> Repo: save(booking)
+  Svc -> Repo: [[../../src/main/java/com/mecinema/mecinema/repo/BookingRepository.java save(booking)]]
   Repo --> Svc: Booking
   Svc --> Ctl: BookingResponse
   Ctl --> API: 201 Created

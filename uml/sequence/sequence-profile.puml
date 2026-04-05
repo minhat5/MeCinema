@@ -10,25 +10,25 @@ skinparam sequence {
 title Sequence - Quản lý hồ sơ
 
 actor Member as "Thành viên"
-participant UI as "ProfileInfoPage + ProtectedRoute"
-participant Hook as "useAuth + useMutation(updateMeApi)"
-participant API as "apiClient"
-participant UserCtl as "UserController"
-participant UserSvc as "UserServiceImpl"
-database UserRepo as "UserRepository"
+participant UI as "[[../../client/src/features/user/pages/ProfileInfoPage.tsx ProfileInfoPage + ProtectedRoute]]"
+participant Hook as "[[../../client/src/features/auth/hooks/useCurrentUser.ts useAuth + useMutation(updateMeApi)]]"
+participant API as "[[../../client/src/lib/api-client.ts apiClient]]"
+control UserCtl as "[[../../src/main/java/com/mecinema/mecinema/controller/user/UserController.java UserController]]"
+participant UserSvc as "[[../../src/main/java/com/mecinema/mecinema/service/impl/UserServiceImpl.java UserServiceImpl]]"
+database UserRepo as "[[../../src/main/java/com/mecinema/mecinema/repo/UserRepository.java UserRepository]]"
 
 == Vào trang hồ sơ ==
 Member -> UI: Truy cập /member hoặc /infor
-UI -> Hook: useCurrentUser()
-Hook -> API: GET /api/user/me
-API -> UserCtl: me(authentication)
-UserCtl -> UserSvc: authed(authentication)
+UI -> Hook: [[../../client/src/features/auth/hooks/useCurrentUser.ts useCurrentUser()]]
+Hook -> API: [[../../client/src/features/auth/services/auth.service.ts getMeApi()]] GET /api/user/me
+API -> UserCtl: [[../../src/main/java/com/mecinema/mecinema/controller/user/UserController.java#L20 me(authentication)]]
+UserCtl -> UserSvc: [[../../src/main/java/com/mecinema/mecinema/service/UserService.java authed(authentication)]]
 alt Chưa đăng nhập
   UserSvc --> UserCtl: SecurityException
   UserCtl --> API: 400
   API --> UI: Redirect /login
 else Đã đăng nhập
-  UserSvc -> UserRepo: findByEmail(authentication.name)
+  UserSvc -> UserRepo: [[../../src/main/java/com/mecinema/mecinema/repo/UserRepository.java findByEmail(authentication.name)]]
   UserRepo --> UserSvc: User
   UserSvc --> UserCtl: User
   UserCtl --> API: 200
@@ -37,24 +37,24 @@ end
 
 == Cập nhật thông tin cá nhân ==
 Member -> UI: Submit họ tên/số điện thoại/avatar
-UI -> Hook: updateMeApi(payload)
-Hook -> API: GET /api/user/me (lấy id hiện tại)
-API -> UserCtl: me(authentication)
-UserCtl -> UserSvc: authed(authentication)
-UserSvc -> UserRepo: findByEmail(...)
+UI -> Hook: [[../../client/src/features/auth/services/auth.service.ts updateMeApi(payload)]]
+Hook -> API: [[../../client/src/features/auth/services/auth.service.ts getMeApi()]] GET /api/user/me (lấy id hiện tại)
+API -> UserCtl: [[../../src/main/java/com/mecinema/mecinema/controller/user/UserController.java#L20 me(authentication)]]
+UserCtl -> UserSvc: [[../../src/main/java/com/mecinema/mecinema/service/UserService.java authed(authentication)]]
+UserSvc -> UserRepo: [[../../src/main/java/com/mecinema/mecinema/repo/UserRepository.java findByEmail(...)]]
 UserRepo --> UserSvc: User(me)
 UserSvc --> UserCtl: User(me)
 UserCtl --> API: 200 User(me)
-Hook -> API: PUT /api/user/{id}
-API -> UserCtl: update(authentication,id,UpdateUserRequest)
-UserCtl -> UserSvc: saveUser(authentication,id,request)
+Hook -> API: [[../../client/src/features/auth/services/auth.service.ts updateMeApi(data)]] PUT /api/user/{id}
+API -> UserCtl: [[../../src/main/java/com/mecinema/mecinema/controller/user/UserController.java#L32 update(authentication,id,UpdateUserRequest)]]
+UserCtl -> UserSvc: [[../../src/main/java/com/mecinema/mecinema/service/UserService.java saveUser(authentication,id,request)]]
 UserSvc -> UserSvc: authed(authentication)
 alt id khác user đang đăng nhập
   UserSvc --> UserCtl: SecurityException
   UserCtl --> API: 400
   API --> UI: Thông báo không đủ quyền
 else Đúng chủ tài khoản
-  UserSvc -> UserRepo: findById(id)
+  UserSvc -> UserRepo: [[../../src/main/java/com/mecinema/mecinema/repo/UserRepository.java findById(id)]]
   alt Không tìm thấy user
     UserRepo --> UserSvc: empty
     UserSvc --> UserCtl: EntityNotFoundException
@@ -62,7 +62,7 @@ else Đúng chủ tài khoản
     API --> UI: Thông báo không tìm thấy
   else Tìm thấy
     UserRepo --> UserSvc: User
-    UserSvc -> UserRepo: save(fullName, phone)
+    UserSvc -> UserRepo: [[../../src/main/java/com/mecinema/mecinema/repo/UserRepository.java save(fullName, phone)]]
     UserRepo --> UserSvc: User
     UserSvc --> UserCtl: User
     UserCtl --> API: 200
@@ -72,7 +72,7 @@ end
 
 == Đăng xuất ==
 Member -> UI: Bấm Đăng xuất
-UI -> Hook: useLogout.mutate()
+UI -> Hook: [[../../client/src/features/auth/hooks/useLogout.ts useLogout.mutate()]]
 Hook -> Hook: localStorage.removeItem('accessToken')
 Hook -> Hook: queryClient.clear()
 Hook --> UI: navigate('/login')

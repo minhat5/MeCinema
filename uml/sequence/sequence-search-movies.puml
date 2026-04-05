@@ -10,31 +10,31 @@ skinparam sequence {
 title Sequence - Xem, tìm kiếm phim
 
 actor Guest as "Khách"
-participant UI as "MoviesPage"
-participant Hook as "useNowShowing/useUpcoming/useMovies"
-participant API as "apiClient"
-participant Ctl as "MovieController"
-participant Svc as "MovieServiceImpl"
-database Repo as "MovieRepository"
+participant UI as "[[../../client/src/features/movies/pages/MoviesPage.tsx MoviesPage]]"
+participant Hook as "[[../../client/src/features/movies/hooks/useMovies.ts useNowShowing/useUpcoming/useMovies]]"
+participant API as "[[../../client/src/lib/api-client.ts apiClient]]"
+control Ctl as "[[../../src/main/java/com/mecinema/mecinema/controller/movie/MovieController.java MovieController]]"
+participant Svc as "[[../../src/main/java/com/mecinema/mecinema/service/impl/MovieServiceImpl.java MovieServiceImpl]]"
+database Repo as "[[../../src/main/java/com/mecinema/mecinema/repo/MovieRepository.java MovieRepository]]"
 
 == Mở trang phim ==
 Guest -> UI: Vào /phim
 alt Có từ khóa search query
-  UI -> Hook: useMovies({search:q})
-  Hook -> API: GET /api/movie/search?q&page&size
-  API -> Ctl: getMovie(q,page,size)
-  Ctl -> Svc: searchAvailable(q,pageable)
-  Svc -> Repo: findAll(spec title + status=RELEASED)
+  UI -> Hook: [[../../client/src/features/movies/hooks/useMovies.ts useMovies({search:q})]]
+  Hook -> API: [[../../client/src/features/movies/services/movies.service.ts getMovies({ search: q, page, limit })]] GET /api/movie/search?q&page&size
+  API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/movie/MovieController.java#L39 getMovie(q,page,size)]]
+  Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/MovieService.java searchAvailable(q,pageable)]]
+  Svc -> Repo: [[../../src/main/java/com/mecinema/mecinema/repo/MovieRepository.java findAll(spec title + status=RELEASED)]]
   Repo --> Svc: Page<Movie>
   Svc --> Ctl: Page<Movie>
   Ctl --> API: 200
   API --> UI: Danh sách kết quả
 else Không có từ khóa
-  UI -> Hook: useNowShowing()/useUpcoming()
-  Hook -> API: GET /api/movie?page&size
-  API -> Ctl: getAll(page,size)
-  Ctl -> Svc: findAllAvailable(pageable)
-  Svc -> Repo: findByStatus(RELEASED,pageable)
+  UI -> Hook: [[../../client/src/features/movies/hooks/useMovies.ts useNowShowing()/useUpcoming()]]
+  Hook -> API: [[../../client/src/features/movies/services/movies.service.ts getNowShowing()/getUpcoming() -> getMovies()]] GET /api/movie?page&size
+  API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/movie/MovieController.java#L19 getAll(page,size)]]
+  Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/MovieService.java findAllAvailable(pageable)]]
+  Svc -> Repo: [[../../src/main/java/com/mecinema/mecinema/repo/MovieRepository.java findByStatus(RELEASED,pageable)]]
   Repo --> Svc: Page<Movie>
   Svc --> Ctl: Page<Movie>
   Ctl --> API: 200
@@ -44,15 +44,15 @@ end
 alt Có kết quả
   UI --> Guest: Hiển thị grid phim
   Guest -> UI: Chọn 1 phim
-  UI -> API: GET /api/movie/{id}
-  API -> Ctl: getMovie(id)
-  Ctl -> Svc: findById(id)
+  UI -> API: [[../../client/src/features/movies/services/movies.service.ts getMovieById(id)]] GET /api/movie/{id}
+  API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/movie/MovieController.java#L28 getMovie(id)]]
+  Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/MovieService.java findById(id)]]
   alt Không tìm thấy phim
     Svc --> Ctl: EntityNotFoundException
     Ctl --> API: 404
     API --> UI: Báo lỗi không tìm thấy
   else Tìm thấy
-    Svc -> Repo: findById(id)
+    Svc -> Repo: [[../../src/main/java/com/mecinema/mecinema/repo/MovieRepository.java findById(id)]]
     Repo --> Svc: Movie
     Svc --> Ctl: Movie
     Ctl --> API: 200

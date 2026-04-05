@@ -10,24 +10,24 @@ skinparam sequence {
 title Sequence - Chọn ghế ngồi
 
 actor User as "Khách hàng"
-participant UI as "BookingPage/SeatSelection"
-participant Hook as "useSeatMap"
-participant API as "apiClient"
-participant ShowCtl as "ShowtimeController"
-participant BookCtl as "BookingController"
-participant SeatSvc as "SeatAvailabilityService"
+participant UI as "[[../../client/src/features/booking/pages/BookingPage.tsx BookingPage/SeatSelection]]"
+participant Hook as "[[../../client/src/features/booking/hooks/useSeatMap.ts useSeatMap]]"
+participant API as "[[../../client/src/lib/api-client.ts apiClient]]"
+control ShowCtl as "[[../../src/main/java/com/mecinema/mecinema/controller/showtime/ShowtimeController.java ShowtimeController]]"
+control BookCtl as "[[../../src/main/java/com/mecinema/mecinema/controller/booking/BookingController.java BookingController]]"
+participant SeatSvc as "[[../../src/main/java/com/mecinema/mecinema/service/SeatAvailabilityService.java SeatAvailabilityService]]"
 
 == Tải dữ liệu suất chiếu và trạng thái ghế ==
 User -> UI: Mở trang /booking/:slug/:showtimeId
-UI -> Hook: useSeatMap(showtimeId)
+UI -> Hook: [[../../client/src/features/booking/hooks/useSeatMap.ts useSeatMap(showtimeId)]]
 par Lấy thông tin suất chiếu
-  Hook -> API: GET /api/showtimes/{showtimeId}
-  API -> ShowCtl: getShowtimeById(showtimeId)
+  Hook -> API: [[../../client/src/features/booking/services/booking.service.ts getSeatMapApi(showtimeId)]] GET /api/showtimes/{showtimeId}
+  API -> ShowCtl: [[../../src/main/java/com/mecinema/mecinema/controller/showtime/ShowtimeController.java#L31 getShowtimeById(showtimeId)]]
   ShowCtl --> API: 200 ApiResponse<ShowtimeDTO>
-and Lấy trạng thái ghế
-  Hook -> API: GET /api/bookings/showtimes/{showtimeId}/seats
-  API -> BookCtl: getSeatAvailability(showtimeId)
-  BookCtl -> SeatSvc: getSeatAvailability(showtimeId)
+else Lấy trạng thái ghế
+  Hook -> API: [[../../client/src/features/booking/services/booking.service.ts getSeatMapApi(showtimeId)]] GET /api/bookings/showtimes/{showtimeId}/seats
+  API -> BookCtl: [[../../src/main/java/com/mecinema/mecinema/controller/booking/BookingController.java#L30 getSeatAvailability(showtimeId)]]
+  BookCtl -> SeatSvc: [[../../src/main/java/com/mecinema/mecinema/service/SeatAvailabilityService.java getSeatAvailability(showtimeId)]]
   SeatSvc --> BookCtl: SeatAvailabilityResponse
   BookCtl --> API: 200
 end

@@ -10,29 +10,29 @@ skinparam sequence {
 title Sequence - Quản lý phim
 
 actor Admin
-participant UI as "ManageMoviesPage"
-participant Hook as "useMovies/useCreateMovie/..."
-participant API as "apiClient"
+participant UI as "[[../../client/src/features/admin/movies/pages/ManageMoviesPage.tsx ManageMoviesPage]]"
+participant Hook as "[[../../client/src/features/admin/movies/hooks/useMovies.ts useMovies/useCreateMovie/...]]"
+participant API as "[[../../client/src/lib/api-client.ts apiClient]]"
 participant Sec as "@PreAuthorize(ADMIN)"
-participant Ctl as "AdminMovieController"
-participant Svc as "MovieServiceImpl"
-database MovieRepo as "MovieRepository"
-database BookingRepo as "BookingRepository"
-database ShowtimeRepo as "ShowtimeRepository"
-database GenreRepo as "GenreRepository"
+control Ctl as "[[../../src/main/java/com/mecinema/mecinema/controller/admin/AdminMovieController.java AdminMovieController]]"
+participant Svc as "[[../../src/main/java/com/mecinema/mecinema/service/impl/MovieServiceImpl.java MovieServiceImpl]]"
+database MovieRepo as "[[../../src/main/java/com/mecinema/mecinema/repo/MovieRepository.java MovieRepository]]"
+database BookingRepo as "[[../../src/main/java/com/mecinema/mecinema/repo/BookingRepository.java BookingRepository]]"
+database ShowtimeRepo as "[[../../src/main/java/com/mecinema/mecinema/repo/ShowtimeRepository.java ShowtimeRepository]]"
+database GenreRepo as "[[../../src/main/java/com/mecinema/mecinema/repo/GenreRepository.java GenreRepository]]"
 
 == Tải danh sách + bộ lọc ==
 Admin -> UI: Mở /admin/movies
-UI -> Hook: useMovies({search,status,page})
+UI -> Hook: [[../../client/src/features/admin/movies/hooks/useMovies.ts useMovies({search,status,page})]]
 alt Có từ khóa
-  Hook -> API: GET /api/movies/search?q&page&size
+  Hook -> API: [[../../client/src/features/admin/movies/hooks/useMovies.ts useMovies()]] GET /api/movies/search?q&page&size
 else Không có từ khóa
-  Hook -> API: GET /api/movies?page&size
+  Hook -> API: [[../../client/src/features/admin/movies/hooks/useMovies.ts useMovies()]] GET /api/movies?page&size
 end
 API -> Sec: Check ROLE_ADMIN
 Sec -> Ctl: search/getAll
-Ctl -> Svc: search(...) / findAll(...)
-Svc -> MovieRepo: findAll(spec,pageable)
+Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/MovieService.java search(...) / findAll(...)]]
+Svc -> MovieRepo: [[../../src/main/java/com/mecinema/mecinema/repo/MovieRepository.java findAll(spec,pageable)]]
 MovieRepo --> Svc: Page<Movie>
 Svc --> Ctl: Page<Movie>
 Ctl --> API: 200
@@ -41,12 +41,12 @@ Hook --> UI: filter status ở frontend + render
 
 == Thêm phim ==
 Admin -> UI: Submit form thêm phim
-UI -> Hook: useCreateMovie(payload)
-Hook -> API: POST /api/movies
-API -> Ctl: create(MovieRequest)
-Ctl -> Svc: create(request)
+UI -> Hook: [[../../client/src/features/admin/movies/hooks/useCreateMovie.ts useCreateMovie(payload)]]
+Hook -> API: [[../../client/src/features/admin/movies/hooks/useCreateMovie.ts useCreateMovie()]] POST /api/movies
+API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/admin/AdminMovieController.java#L52 create(MovieRequest)]]
+Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/MovieService.java create(request)]]
 loop Mỗi genre name trong request.genres
-  Svc -> GenreRepo: findByName(name)
+  Svc -> GenreRepo: [[../../src/main/java/com/mecinema/mecinema/repo/GenreRepository.java findByName(name)]]
   alt Không tìm thấy thể loại
     GenreRepo --> Svc: empty
     Svc --> Ctl: EntityNotFoundException
@@ -57,7 +57,7 @@ loop Mỗi genre name trong request.genres
   end
 end
 alt Request hợp lệ
-  Svc -> MovieRepo: save(new Movie)
+  Svc -> MovieRepo: [[../../src/main/java/com/mecinema/mecinema/repo/MovieRepository.java save(new Movie)]]
   MovieRepo --> Svc: Movie
   Svc --> Ctl: Movie
   Ctl --> API: 200
@@ -66,11 +66,11 @@ end
 
 == Sửa phim ==
 Admin -> UI: Chọn phim, submit cập nhật
-UI -> Hook: useUpdateMovie(id,payload)
-Hook -> API: PUT /api/movies/{id}
-API -> Ctl: update(id,request)
-Ctl -> Svc: update(id,request)
-Svc -> MovieRepo: findById(id)
+UI -> Hook: [[../../client/src/features/admin/movies/hooks/useUpdateMovie.ts useUpdateMovie(id,payload)]]
+Hook -> API: [[../../client/src/features/admin/movies/hooks/useUpdateMovie.ts useUpdateMovie()]] PUT /api/movies/{id}
+API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/admin/AdminMovieController.java#L63 update(id,request)]]
+Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/MovieService.java update(id,request)]]
+Svc -> MovieRepo: [[../../src/main/java/com/mecinema/mecinema/repo/MovieRepository.java findById(id)]]
 alt Không tồn tại
   MovieRepo --> Svc: empty
   Svc --> Ctl: EntityNotFoundException
@@ -79,7 +79,7 @@ alt Không tồn tại
 else Tồn tại
   MovieRepo --> Svc: Movie
   alt Có đổi tên phim
-    Svc -> BookingRepo: existsByMovieIdAndStatus(id, SUCCESS)
+    Svc -> BookingRepo: [[../../src/main/java/com/mecinema/mecinema/repo/BookingRepository.java existsByMovieIdAndStatus(id, SUCCESS)]]
     alt Đã có booking SUCCESS
       BookingRepo --> Svc: true
       Svc --> Ctl: IllegalStateException
@@ -87,7 +87,7 @@ else Tồn tại
       API --> UI: Báo không thể đổi tên\n(vì đã có vé thanh toán)
     else Chưa có booking SUCCESS
       BookingRepo --> Svc: false
-      Svc -> ShowtimeRepo: existsByMovieIdAndStartTimeBetween(id, now, now+24h)
+      Svc -> ShowtimeRepo: [[../../src/main/java/com/mecinema/mecinema/repo/ShowtimeRepository.java existsByMovieIdAndStartTimeBetween(id, now, now+24h)]]
       alt Có suất chiếu trong 24h tới
         ShowtimeRepo --> Svc: true
         Svc --> Ctl: IllegalStateException
@@ -96,7 +96,7 @@ else Tồn tại
       else Không có suất chiếu gần giờ
         ShowtimeRepo --> Svc: false
         Svc -> GenreRepo: resolveGenres(...)
-        Svc -> MovieRepo: save(updatedMovie)
+        Svc -> MovieRepo: [[../../src/main/java/com/mecinema/mecinema/repo/MovieRepository.java save(updatedMovie)]]
         MovieRepo --> Svc: Movie
         Svc --> Ctl: Movie
         Ctl --> API: 200
@@ -105,7 +105,7 @@ else Tồn tại
     end
   else Không đổi tên phim
     Svc -> GenreRepo: resolveGenres(...)
-    Svc -> MovieRepo: save(updatedMovie)
+    Svc -> MovieRepo: [[../../src/main/java/com/mecinema/mecinema/repo/MovieRepository.java save(updatedMovie)]]
     MovieRepo --> Svc: Movie
     Svc --> Ctl: Movie
     Ctl --> API: 200
@@ -115,11 +115,11 @@ end
 
 == Xóa phim ==
 Admin -> UI: Xác nhận xóa
-UI -> Hook: useDeleteMovie(id)
-Hook -> API: DELETE /api/movies/{id}
-API -> Ctl: delete(id)
-Ctl -> Svc: delete(id)
-Svc -> MovieRepo: existsById(id)
+UI -> Hook: [[../../client/src/features/admin/movies/hooks/useDeleteMovie.ts useDeleteMovie(id)]]
+Hook -> API: [[../../client/src/features/admin/movies/hooks/useDeleteMovie.ts useDeleteMovie()]] DELETE /api/movies/{id}
+API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/admin/AdminMovieController.java#L77 delete(id)]]
+Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/MovieService.java delete(id)]]
+Svc -> MovieRepo: [[../../src/main/java/com/mecinema/mecinema/repo/MovieRepository.java existsById(id)]]
 alt Không tồn tại
   MovieRepo --> Svc: false
   Svc --> Ctl: EntityNotFoundException
@@ -127,7 +127,7 @@ alt Không tồn tại
   API --> UI: Báo không tìm thấy phim
 else Tồn tại
   MovieRepo --> Svc: true
-  Svc -> MovieRepo: deleteById(id)
+  Svc -> MovieRepo: [[../../src/main/java/com/mecinema/mecinema/repo/MovieRepository.java deleteById(id)]]
   MovieRepo --> Svc: done
   Svc --> Ctl: done
   Ctl --> API: 200

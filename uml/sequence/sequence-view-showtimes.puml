@@ -10,20 +10,20 @@ skinparam sequence {
 title Sequence - Xem lịch chiếu
 
 actor User as "Khách/Thành viên"
-participant UI as "MovieDetailPage/SchedulePage"
-participant Hook as "useShowtimes/useScheduleShowtimes"
-participant API as "apiClient"
-participant Ctl as "ShowtimeController"
-participant Svc as "ShowtimeService"
-database Repo as "ShowtimeRepository"
+participant UI as "[[../../client/src/features/movies/pages/MovieDetailPage.tsx MovieDetailPage/SchedulePage]]"
+participant Hook as "[[../../client/src/features/movies/hooks/useShowtimes.ts useShowtimes/useScheduleShowtimes]]"
+participant API as "[[../../client/src/lib/api-client.ts apiClient]]"
+control Ctl as "[[../../src/main/java/com/mecinema/mecinema/controller/showtime/ShowtimeController.java ShowtimeController]]"
+participant Svc as "[[../../src/main/java/com/mecinema/mecinema/service/ShowtimeService.java ShowtimeService]]"
+database Repo as "[[../../src/main/java/com/mecinema/mecinema/repo/ShowtimeRepository.java ShowtimeRepository]]"
 
 == Xem lịch chiếu theo phim ==
 User -> UI: Chọn phim cần xem lịch
-UI -> Hook: useShowtimes({movieId})
-Hook -> API: GET /api/showtimes/movie/{movieId}
-API -> Ctl: getShowtimesByMovie(movieId)
-Ctl -> Svc: getShowtimesByMovie(movieId)
-Svc -> Repo: findByMovieId(...)
+UI -> Hook: [[../../client/src/features/movies/hooks/useShowtimes.ts useShowtimes({movieId})]]
+Hook -> API: [[../../client/src/features/movies/hooks/useShowtimes.ts queryFn() -> apiClient.get(`/showtimes/movie/${movieId}`)]] GET /api/showtimes/movie/{movieId}
+API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/showtime/ShowtimeController.java#L114 getShowtimesByMovie(movieId)]]
+Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/ShowtimeService.java getShowtimesByMovie(movieId)]]
+Svc -> Repo: [[../../src/main/java/com/mecinema/mecinema/repo/ShowtimeRepository.java findByMovieId(...)]]
 Repo --> Svc: List<Showtime>
 Svc --> Ctl: List<ShowtimeDTO>
 Ctl --> API: 200 ApiResponse<List<ShowtimeDTO>>
@@ -32,11 +32,11 @@ Hook --> UI: Nhóm theo ngày và render giờ chiếu
 
 == Xem lịch chiếu tổng quát có phân trang ==
 User -> UI: Mở trang lịch chiếu tổng hợp
-UI -> Hook: useScheduleShowtimes({page,limit,sort})
-Hook -> API: GET /api/showtimes?page&size&sortBy&sortDirection&fromNow=true
-API -> Ctl: getAllShowtimes(...)
-Ctl -> Svc: getFutureShowtimes(pageable)
-Svc -> Repo: findFutureShowtimes(now, pageable)
+UI -> Hook: [[../../client/src/features/movies/hooks/useScheduleShowtimes.ts useScheduleShowtimes({page,limit,sort})]]
+Hook -> API: [[../../client/src/features/movies/hooks/useScheduleShowtimes.ts getScheduleShowtimes(params)]] GET /api/showtimes?page&size&sortBy&sortDirection&fromNow=true
+API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/showtime/ShowtimeController.java#L42 getAllShowtimes(...)]]
+Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/ShowtimeService.java getFutureShowtimes(pageable)]]
+Svc -> Repo: [[../../src/main/java/com/mecinema/mecinema/repo/ShowtimeRepository.java findFutureShowtimes(now, pageable)]]
 Repo --> Svc: Page<Showtime>
 Svc --> Ctl: PaginatedResponse<ShowtimeDTO>
 Ctl --> API: 200 ApiResponse<PaginatedResponse>

@@ -10,27 +10,27 @@ skinparam sequence {
 title Sequence - Hủy đặt vé
 
 actor User as "Khách hàng"
-participant UI as "BookingDetail/HistoryPage"
-participant Hook as "cancelBookingApi"
-participant API as "apiClient"
-participant Ctl as "BookingController"
-participant Svc as "BookingService"
-database Repo as "BookingRepository"
+participant UI as "[[../../client/src/features/user/components/BookingDetailModal.tsx BookingDetail/HistoryPage]]"
+participant Hook as "[[../../client/src/features/booking/hooks/useBookingGuard.ts cancelBookingApi flow]]"
+participant API as "[[../../client/src/lib/api-client.ts apiClient]]"
+control Ctl as "[[../../src/main/java/com/mecinema/mecinema/controller/booking/BookingController.java BookingController]]"
+participant Svc as "[[../../src/main/java/com/mecinema/mecinema/service/BookingService.java BookingService]]"
+database Repo as "[[../../src/main/java/com/mecinema/mecinema/repo/BookingRepository.java BookingRepository]]"
 
 User -> UI: Bấm hủy đơn đặt vé
 UI -> UI: Hiển thị hộp thoại xác nhận
 User -> UI: Xác nhận hủy
-UI -> Hook: cancelBookingApi(bookingId)
-Hook -> API: DELETE /api/bookings/{bookingId}
-API -> Ctl: cancelBooking(currentUser, bookingId)
-Ctl -> Svc: cancelBooking(userId, bookingId)
-Svc -> Repo: findBookingAndValidateOwner(...)
+UI -> Hook: [[../../client/src/features/booking/hooks/useBookingGuard.ts cancelBookingApi(bookingId)]]
+Hook -> API: [[../../client/src/features/booking/services/booking.service.ts cancelBookingApi(id)]] DELETE /api/bookings/{bookingId}
+API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/booking/BookingController.java#L59 cancelBooking(currentUser, bookingId)]]
+Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/BookingService.java cancelBooking(userId, bookingId)]]
+Svc -> Repo: [[../../src/main/java/com/mecinema/mecinema/repo/BookingRepository.java findByIdAndUserId(bookingId, userId)]]
 alt Không hợp lệ hoặc không tồn tại
   Svc --> Ctl: throw exception
   Ctl --> API: 400/404
   API --> UI: Thông báo hủy thất bại
 else Hợp lệ
-  Svc -> Repo: update status = CANCELED
+  Svc -> Svc: booking.setStatus(FAILED)
   Svc -> Svc: Giải phóng ghế đã giữ
   Svc --> Ctl: done
   Ctl --> API: 204 No Content

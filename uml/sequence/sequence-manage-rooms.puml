@@ -10,20 +10,20 @@ skinparam sequence {
 title Sequence - Quản lý phòng chiếu
 
 actor Admin as "Quản trị viên"
-participant UI as "ManageRoomsPage"
-participant Hook as "useAdminRooms/useCreateRoom/..."
-participant API as "apiClient"
-participant Ctl as "RoomController"
-participant Svc as "RoomService"
-database Repo as "RoomRepository"
+participant UI as "[[../../client/src/features/admin/rooms/pages/ManageRoomsPage.tsx ManageRoomsPage]]"
+participant Hook as "[[../../client/src/features/admin/rooms/hooks/useRoomCRUD.ts useAdminRooms/useCreateRoom/...]]"
+participant API as "[[../../client/src/lib/api-client.ts apiClient]]"
+control Ctl as "[[../../src/main/java/com/mecinema/mecinema/controller/admin/RoomController.java RoomController]]"
+participant Svc as "[[../../src/main/java/com/mecinema/mecinema/service/RoomService.java RoomService]]"
+database Repo as "[[../../src/main/java/com/mecinema/mecinema/repo/RoomRepository.java RoomRepository]]"
 
 == Xem danh sách phòng theo cụm rạp ==
 Admin -> UI: Chọn cụm rạp
-UI -> Hook: useAdminRooms({cinemaId, page, limit})
-Hook -> API: GET /api/rooms?cinemaId&page&limit
-API -> Ctl: getRoomsByCinema(cinemaId, page, limit)
-Ctl -> Svc: getRoomsByCinema(cinemaId, pageable)
-Svc -> Repo: findByCinemaId(...)
+UI -> Hook: [[../../client/src/features/admin/rooms/hooks/useRoomCRUD.ts useAdminRooms({cinemaId, page, limit})]]
+Hook -> API: [[../../client/src/features/admin/rooms/hooks/useRoomCRUD.ts useAdminRooms()]] GET /api/rooms?cinemaId&page&limit
+API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/admin/RoomController.java#L44 getRoomsByCinema(cinemaId, page, limit)]]
+Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/RoomService.java getRoomsByCinema(cinemaId, pageable)]]
+Svc -> Repo: [[../../src/main/java/com/mecinema/mecinema/repo/RoomRepository.java findByCinemaId(...)]]
 Repo --> Svc: Page<Room>
 Svc --> Ctl: Page<RoomDto>
 Ctl --> API: 200 ApiResponse<Page<RoomDto>>
@@ -31,25 +31,25 @@ API --> UI: Hiển thị danh sách phòng
 
 == Tạo/Cập nhật/Xóa phòng ==
 alt Tạo phòng
-  UI -> Hook: useCreateRoom(body)
-  Hook -> API: POST /api/rooms
-  API -> Ctl: createRoom(dto)
-  Ctl -> Svc: createRoom(dto)
-  Svc -> Repo: save(room)
+  UI -> Hook: [[../../client/src/features/admin/rooms/hooks/useRoomCRUD.ts useCreateRoom(body)]]
+  Hook -> API: [[../../client/src/features/admin/rooms/hooks/useRoomCRUD.ts useCreateRoom()]] POST /api/rooms
+  API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/admin/RoomController.java#L29 createRoom(dto)]]
+  Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/RoomService.java createRoom(dto)]]
+  Svc -> Repo: [[../../src/main/java/com/mecinema/mecinema/repo/RoomRepository.java save(room)]]
   Ctl --> API: 201
 else Cập nhật phòng
-  UI -> Hook: useUpdateRoom(id, body)
-  Hook -> API: PATCH /api/rooms/{id}
-  API -> Ctl: updateRoom(id, dto)
-  Ctl -> Svc: updateRoom(id, dto)
-  Svc -> Repo: save(updatedRoom)
+  UI -> Hook: [[../../client/src/features/admin/rooms/hooks/useRoomCRUD.ts useUpdateRoom(id, body)]]
+  Hook -> API: [[../../client/src/features/admin/rooms/hooks/useRoomCRUD.ts useUpdateRoom()]] PATCH /api/rooms/{id}
+  API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/admin/RoomController.java#L79 updateRoom(id, dto)]]
+  Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/RoomService.java updateRoom(id, dto)]]
+  Svc -> Repo: [[../../src/main/java/com/mecinema/mecinema/repo/RoomRepository.java save(updatedRoom)]]
   Ctl --> API: 200
 else Xóa phòng
-  UI -> Hook: useDeleteRoom(id)
-  Hook -> API: DELETE /api/rooms/{id}
-  API -> Ctl: deleteRoom(id)
-  Ctl -> Svc: deleteRoom(id)
-  Svc -> Repo: deleteById(id)
+  UI -> Hook: [[../../client/src/features/admin/rooms/hooks/useRoomCRUD.ts useDeleteRoom(id)]]
+  Hook -> API: [[../../client/src/features/admin/rooms/hooks/useRoomCRUD.ts useDeleteRoom()]] DELETE /api/rooms/{id}
+  API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/admin/RoomController.java#L97 deleteRoom(id)]]
+  Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/RoomService.java deleteRoom(id)]]
+  Svc -> Repo: [[../../src/main/java/com/mecinema/mecinema/repo/RoomRepository.java deleteById(id)]]
   Ctl --> API: 200
 end
 @enduml

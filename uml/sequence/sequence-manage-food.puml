@@ -10,26 +10,26 @@ skinparam sequence {
 title Sequence - Quản lý đồ ăn và thức uống
 
 actor Admin
-participant UI as "ManageFoodPage"
-participant Hook as "useFoodCRUD hooks"
-participant API as "apiClient"
+participant UI as "[[../../client/src/features/admin/food/pages/ManageFoodPage.tsx ManageFoodPage]]"
+participant Hook as "[[../../client/src/features/admin/food/hooks/useFoodCRUD.ts useFoodCRUD hooks]]"
+participant API as "[[../../client/src/lib/api-client.ts apiClient]]"
 participant Sec as "Spring Security + @PreAuthorize"
-participant Ctl as "AdminFoodController"
-participant Svc as "FoodServiceImpl"
-database Repo as "FoodRepository"
+control Ctl as "[[../../src/main/java/com/mecinema/mecinema/controller/admin/AdminFoodController.java AdminFoodController]]"
+participant Svc as "[[../../src/main/java/com/mecinema/mecinema/service/impl/FoodServiceImpl.java FoodServiceImpl]]"
+database Repo as "[[../../src/main/java/com/mecinema/mecinema/repo/FoodRepository.java FoodRepository]]"
 
 == Mở module + tải danh sách ==
 Admin -> UI: Vào /admin/food
-UI -> Hook: useAdminProducts(page,size,kind)
-Hook -> API: GET /api/foods?page&size
+UI -> Hook: [[../../client/src/features/admin/food/hooks/useFoodCRUD.ts useAdminProducts(page,size,kind)]]
+Hook -> API: [[../../client/src/features/admin/food/hooks/useFoodCRUD.ts useAdminProducts()]] GET /api/foods?page&size
 API -> Sec: Check JWT + ROLE_ADMIN
 alt Không phải Admin
   Sec --> API: 403 Forbidden
   API --> UI: Chặn truy cập
 else Đủ quyền
-  Sec -> Ctl: getAll(page,size)
-  Ctl -> Svc: findAll(pageable)
-  Svc -> Repo: findAll(pageable)
+  Sec -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/admin/AdminFoodController.java#L24 getAll(page,size)]]
+  Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/FoodService.java findAll(pageable)]]
+  Svc -> Repo: [[../../src/main/java/com/mecinema/mecinema/repo/FoodRepository.java findAll(pageable)]]
   Repo --> Svc: Page<Food>
   Svc --> Ctl: Page<Food>
   Ctl --> API: 200 content
@@ -39,12 +39,12 @@ end
 
 == Thêm mới món/combo ==
 Admin -> UI: Submit form thêm mới
-UI -> Hook: useCreateProduct/useCreateCombo
-Hook -> API: POST /api/foods
+UI -> Hook: [[../../client/src/features/admin/food/hooks/useFoodCRUD.ts useCreateProduct/useCreateCombo]]
+Hook -> API: [[../../client/src/features/admin/food/hooks/useFoodCRUD.ts useCreateProduct()/useCreateCombo()]] POST /api/foods
 API -> Sec: Check ROLE_ADMIN
-Sec -> Ctl: create(food)
-Ctl -> Svc: create(food)
-Svc -> Repo: save(food)
+Sec -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/admin/AdminFoodController.java#L42 create(food)]]
+Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/FoodService.java create(food)]]
+Svc -> Repo: [[../../src/main/java/com/mecinema/mecinema/repo/FoodRepository.java save(food)]]
 alt Dữ liệu lỗi
   Repo --> Svc: throw exception
   Svc --> Ctl: exception
@@ -61,12 +61,12 @@ end
 
 == Chỉnh sửa món/combo ==
 Admin -> UI: Chọn sửa và lưu
-UI -> Hook: useUpdateProduct.mutate(id, body)
-Hook -> API: PUT /api/foods/{id}
+UI -> Hook: [[../../client/src/features/admin/food/hooks/useFoodCRUD.ts useUpdateProduct.mutate(id, body)]]
+Hook -> API: [[../../client/src/features/admin/food/hooks/useFoodCRUD.ts useUpdateProduct()]] PUT /api/foods/{id}
 API -> Sec: Check ROLE_ADMIN
-Sec -> Ctl: update(id, food)
-Ctl -> Svc: update(id, food)
-Svc -> Repo: findById(id)
+Sec -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/admin/AdminFoodController.java#L51 update(id, food)]]
+Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/FoodService.java update(id, food)]]
+Svc -> Repo: [[../../src/main/java/com/mecinema/mecinema/repo/FoodRepository.java findById(id)]]
 alt Không tìm thấy sản phẩm
   Repo --> Svc: empty
   Svc --> Ctl: EntityNotFoundException
@@ -74,7 +74,7 @@ alt Không tìm thấy sản phẩm
   API --> UI: Thông báo không tìm thấy
 else Tìm thấy
   Repo --> Svc: Food
-  Svc -> Repo: save(updatedFood)
+  Svc -> Repo: [[../../src/main/java/com/mecinema/mecinema/repo/FoodRepository.java save(updatedFood)]]
   Repo --> Svc: Food
   Svc --> Ctl: Food
   Ctl --> API: 200
@@ -84,18 +84,18 @@ end
 
 == Ẩn sản phẩm khỏi menu ==
 Admin -> UI: Bấm "Ẩn"
-UI -> Hook: useDeactivateProduct(id)
-Hook -> API: GET /api/foods/{id}
-API -> Ctl: getFood(id)
-Ctl -> Svc: findById(id)
-Svc -> Repo: findById(id)
+UI -> Hook: [[../../client/src/features/admin/food/hooks/useFoodCRUD.ts useDeactivateProduct(id)]]
+Hook -> API: [[../../client/src/features/admin/food/hooks/useFoodCRUD.ts useDeactivateProduct()]] GET /api/foods/{id}
+API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/admin/AdminFoodController.java#L33 getFood(id)]]
+Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/FoodService.java findById(id)]]
+Svc -> Repo: [[../../src/main/java/com/mecinema/mecinema/repo/FoodRepository.java findById(id)]]
 Repo --> Svc: Food
 Svc --> Ctl: Food
 Ctl --> API: 200
-Hook -> API: PUT /api/foods/{id} (isActive=false)
-API -> Ctl: update(id, food)
-Ctl -> Svc: update(id, food)
-Svc -> Repo: save(food.isActive=false)
+Hook -> API: [[../../client/src/features/admin/food/hooks/useFoodCRUD.ts useDeactivateProduct()]] PUT /api/foods/{id} (isActive=false)
+API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/admin/AdminFoodController.java#L51 update(id, food)]]
+Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/FoodService.java update(id, food)]]
+Svc -> Repo: [[../../src/main/java/com/mecinema/mecinema/repo/FoodRepository.java save(food.isActive=false)]]
 Repo --> Svc: Food
 Svc --> Ctl: Food
 Ctl --> API: 200

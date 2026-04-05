@@ -72,7 +72,6 @@ public class CinemaServiceImpl implements CinemaService {
     @Override
     @Transactional(readOnly = true)
     public Page<Cinema> search(String keyword, Pageable pageable) {
-        log.debug("Searching cinemas with keyword: {}", keyword);
         return cinemaRepository.findByNameContainingIgnoreCase(keyword, pageable);
     }
 }

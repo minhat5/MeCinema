@@ -10,19 +10,19 @@ skinparam sequence {
 title Sequence - Xem menu đồ ăn và thức uống
 
 actor User as "Khách hàng"
-participant UI as "FoodSelection"
-participant Hook as "useAvailableFoods"
-participant API as "apiClient"
-participant Ctl as "FoodController"
-participant Svc as "FoodService"
-database Repo as "FoodRepository"
+participant UI as "[[../../client/src/features/booking/components/FoodSelection.tsx FoodSelection]]"
+participant Hook as "[[../../client/src/features/booking/hooks/useFood.ts useAvailableFoods]]"
+participant API as "[[../../client/src/lib/api-client.ts apiClient]]"
+control Ctl as "[[../../src/main/java/com/mecinema/mecinema/controller/food/FoodController.java FoodController]]"
+participant Svc as "[[../../src/main/java/com/mecinema/mecinema/service/FoodService.java FoodService]]"
+database Repo as "[[../../src/main/java/com/mecinema/mecinema/repo/FoodRepository.java FoodRepository]]"
 
 User -> UI: Mở bước chọn đồ ăn
-UI -> Hook: useAvailableFoods(page, size)
-Hook -> API: GET /api/public/foods/available?page&size
-API -> Ctl: getAvailableFoods(page, size)
-Ctl -> Svc: search(name="", type=null, isActive=true, pageable)
-Svc -> Repo: findAllByFilter(...)
+UI -> Hook: [[../../client/src/features/booking/hooks/useFood.ts useAvailableFoods(page, size)]]
+Hook -> API: [[../../client/src/features/booking/services/food.service.ts getAvailableFoodsApi(page, size)]] GET /api/public/foods/available?page&size
+API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/food/FoodController.java#L32 getAvailableFoods(page, size)]]
+Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/FoodService.java search(name="", type=null, isActive=true, pageable)]]
+Svc -> Repo: [[../../src/main/java/com/mecinema/mecinema/repo/FoodRepository.java findAllByFilter(...)]]
 Repo --> Svc: Page<Food>
 Svc --> Ctl: Page<Food>
 Ctl --> API: 200 Page<FoodDTO>

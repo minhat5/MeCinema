@@ -9,7 +9,7 @@ hide methods
 
 title Class Diagram
 
-abstract class BaseEntity {
+abstract class BaseEntity [[../../src/main/java/com/mecinema/mecinema/model/entity/BaseEntity.java]] {
   -createdAt: LocalDateTime
   -updatedAt: LocalDateTime
   +getCreatedAt(): LocalDateTime
@@ -18,7 +18,7 @@ abstract class BaseEntity {
   +setUpdatedAt(updatedAt: LocalDateTime): void
 }
 
-class Role {
+class Role [[../../src/main/java/com/mecinema/mecinema/model/entity/Role.java]] {
   -id: Long
   -name: RoleUser
   +Role()
@@ -29,7 +29,7 @@ class Role {
   +setName(name: RoleUser): void
 }
 
-class User {
+class User [[../../src/main/java/com/mecinema/mecinema/model/entity/User.java]] {
   -id: Long
   -email: String
   -password: String
@@ -52,7 +52,7 @@ class User {
   +setRole(role: Role): void
 }
 
-class Genre {
+class Genre [[../../src/main/java/com/mecinema/mecinema/model/entity/Genre.java]] {
   -id: Long
   -name: String
   +Genre()
@@ -63,7 +63,7 @@ class Genre {
   +setName(name: String): void
 }
 
-class Movie {
+class Movie [[../../src/main/java/com/mecinema/mecinema/model/entity/Movie.java]] {
   -id: Long
   -title: String
   -description: String
@@ -95,7 +95,7 @@ class Movie {
   +setGenres(genres: Set<Genre>): void
 }
 
-class Cinema {
+class Cinema [[../../src/main/java/com/mecinema/mecinema/model/entity/Cinema.java]] {
   -id: Long
   -name: String
   -address: String
@@ -112,7 +112,7 @@ class Cinema {
   +setHotline(hotline: String): void
 }
 
-class Room {
+class Room [[../../src/main/java/com/mecinema/mecinema/model/entity/Room.java]] {
   -id: Long
   -cinema: Cinema
   -name: String
@@ -126,7 +126,7 @@ class Room {
   +setName(name: String): void
 }
 
-class Seat {
+class Seat [[../../src/main/java/com/mecinema/mecinema/model/entity/Seat.java]] {
   -id: Long
   -room: Room
   -rowSymbol: String
@@ -146,7 +146,7 @@ class Seat {
   +setType(type: SeatType): void
 }
 
-class Showtime {
+class Showtime [[../../src/main/java/com/mecinema/mecinema/model/entity/Showtime.java]] {
   -id: Long
   -movie: Movie
   -room: Room
@@ -169,7 +169,7 @@ class Showtime {
   +setBasePrice(basePrice: BigDecimal): void
 }
 
-class Food {
+class Food [[../../src/main/java/com/mecinema/mecinema/model/entity/Food.java]] {
   -id: Long
   -name: String
   -description: String
@@ -195,7 +195,7 @@ class Food {
   +setIsActive(isActive: Boolean): void
 }
 
-class Booking {
+class Booking [[../../src/main/java/com/mecinema/mecinema/model/entity/Booking.java]] {
   -id: Long
   -version: Long
   -user: User
@@ -227,7 +227,7 @@ class Booking {
   +setBookingFoods(bookingFoods: Set<BookingFood>): void
 }
 
-class Ticket {
+class Ticket [[../../src/main/java/com/mecinema/mecinema/model/entity/Ticket.java]] {
   -id: Long
   -booking: Booking
   -seat: Seat
@@ -244,7 +244,7 @@ class Ticket {
   +setPrice(price: BigDecimal): void
 }
 
-class BookingFood {
+class BookingFood [[../../src/main/java/com/mecinema/mecinema/model/entity/BookingFood.java]] {
   -id: Long
   -booking: Booking
   -food: Food
@@ -264,7 +264,7 @@ class BookingFood {
   +setPrice(price: BigDecimal): void
 }
 
-class Payment {
+class Payment [[../../src/main/java/com/mecinema/mecinema/model/entity/Payment.java]] {
   -id: Long
   -version: Long
   -booking: Booking

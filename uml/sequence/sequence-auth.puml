@@ -10,23 +10,23 @@ skinparam sequence {
 title Sequence - Đăng nhập, Đăng ký, Phân quyền
 
 actor User as "Người dùng"
-participant UI as "Login/Register + ProtectedRoute"
-participant Hook as "useLogin/useRegister/useCurrentUser"
-participant API as "apiClient"
-participant AuthCtl as "AuthController"
-participant AuthSvc as "AuthServiceImpl"
-participant UserSvc as "UserServiceImpl"
+participant UI as "[[../../client/src/features/auth/pages/LoginPage.tsx Login/Register + ProtectedRoute]]"
+participant Hook as "[[../../client/src/features/auth/hooks/useCurrentUser.ts useLogin/useRegister/useCurrentUser]]"
+participant API as "[[../../client/src/lib/api-client.ts apiClient]]"
+control AuthCtl as "[[../../src/main/java/com/mecinema/mecinema/controller/auth/AuthController.java AuthController]]"
+participant AuthSvc as "[[../../src/main/java/com/mecinema/mecinema/service/impl/AuthServiceImpl.java AuthServiceImpl]]"
+participant UserSvc as "[[../../src/main/java/com/mecinema/mecinema/service/impl/UserServiceImpl.java UserServiceImpl]]"
 participant AuthMgr as "AuthenticationManager"
-participant JwtSvc as "JwtService"
-database UserRepo as "UserRepository"
-database RoleRepo as "RoleRepository"
+participant JwtSvc as "[[../../src/main/java/com/mecinema/mecinema/service/JwtService.java JwtService]]"
+database UserRepo as "[[../../src/main/java/com/mecinema/mecinema/repo/UserRepository.java UserRepository]]"
+database RoleRepo as "[[../../src/main/java/com/mecinema/mecinema/repo/RoleRepository.java RoleRepository]]"
 
 == Kiểm tra phiên khi vào route bảo vệ ==
 User -> UI: Truy cập /admin hoặc /member
-UI -> Hook: useCurrentUser()
+UI -> Hook: [[../../client/src/features/auth/hooks/useCurrentUser.ts useCurrentUser()]]
 Hook -> API: GET /api/user/me (Bearer token)
-API -> UserSvc: authed(authentication)
-UserSvc -> UserRepo: findByEmail(authentication.name)
+API -> UserSvc: [[../../src/main/java/com/mecinema/mecinema/service/impl/UserServiceImpl.java#L100 authed(authentication)]]
+UserSvc -> UserRepo: [[../../src/main/java/com/mecinema/mecinema/repo/UserRepository.java findByEmail(authentication.name)]]
 UserRepo --> UserSvc: User
 UserSvc --> API: 200 User
 API --> Hook: User
@@ -40,11 +40,11 @@ end
 
 == Đăng ký ==
 User -> UI: Gửi form đăng ký
-UI -> Hook: useRegister.mutate(payload)
-Hook -> API: POST /api/auth/register
-API -> AuthCtl: register(RegisterReq)
-AuthCtl -> AuthSvc: register(registerReq)
-AuthSvc -> UserRepo: existsByEmail(email)
+UI -> Hook: [[../../client/src/features/auth/hooks/useRegister.ts useRegister.mutate(payload)]]
+Hook -> API: [[../../client/src/features/auth/services/auth.service.ts registerApi()]] POST /api/auth/register
+API -> AuthCtl: [[../../src/main/java/com/mecinema/mecinema/controller/auth/AuthController.java#L27 register(RegisterReq)]]
+AuthCtl -> AuthSvc: [[../../src/main/java/com/mecinema/mecinema/service/impl/AuthServiceImpl.java#L34 register(registerReq)]]
+AuthSvc -> UserRepo: [[../../src/main/java/com/mecinema/mecinema/repo/UserRepository.java existsByEmail(email)]]
 alt Email đã tồn tại
   UserRepo --> AuthSvc: true
   AuthSvc --> AuthCtl: throw RuntimeException
@@ -52,20 +52,20 @@ alt Email đã tồn tại
   API --> UI: Hiển thị lỗi
 else Hợp lệ
   UserRepo --> AuthSvc: false
-  AuthSvc -> RoleRepo: findByName(CUSTOMER)
+  AuthSvc -> RoleRepo: [[../../src/main/java/com/mecinema/mecinema/repo/RoleRepository.java findByName(CUSTOMER)]]
   RoleRepo --> AuthSvc: Role
-  AuthSvc -> UserRepo: save(new User)
+  AuthSvc -> UserRepo: [[../../src/main/java/com/mecinema/mecinema/repo/UserRepository.java save(new User)]]
   UserRepo --> AuthSvc: User
   AuthSvc --> AuthCtl: OK
   AuthCtl --> API: 200
-  Hook -> API: POST /api/auth/login (auto login)
-  API -> AuthCtl: login(LoginReq)
-  AuthCtl -> AuthSvc: login(loginReq)
-  AuthSvc -> AuthMgr: authenticate(email, password)
+  Hook -> API: [[../../client/src/features/auth/services/auth.service.ts loginApi()]] POST /api/auth/login (auto login)
+  API -> AuthCtl: [[../../src/main/java/com/mecinema/mecinema/controller/auth/AuthController.java#L33 login(LoginReq)]]
+  AuthCtl -> AuthSvc: [[../../src/main/java/com/mecinema/mecinema/service/impl/AuthServiceImpl.java#L53 login(loginReq)]]
+  AuthSvc -> AuthMgr: [[../../src/main/java/com/mecinema/mecinema/service/impl/AuthServiceImpl.java#L55 authenticate(email, password)]]
   AuthMgr --> AuthSvc: Authentication
-  AuthSvc -> UserRepo: findByEmail(email)
+  AuthSvc -> UserRepo: [[../../src/main/java/com/mecinema/mecinema/repo/UserRepository.java findByEmail(email)]]
   UserRepo --> AuthSvc: User
-  AuthSvc -> JwtSvc: generate(subject, claims)
+  AuthSvc -> JwtSvc: [[../../src/main/java/com/mecinema/mecinema/service/JwtService.java generate(subject, claims)]]
   JwtSvc --> AuthSvc: token
   AuthSvc --> AuthCtl: AuthRes(token)
   AuthCtl --> API: 200 + Set-Cookie AUTH_TOKEN
@@ -76,11 +76,11 @@ end
 
 == Đăng nhập ==
 User -> UI: Gửi form đăng nhập
-UI -> Hook: useLogin.mutate(credentials)
-Hook -> API: POST /api/auth/login
-API -> AuthCtl: login(LoginReq)
-AuthCtl -> AuthSvc: login(loginReq)
-AuthSvc -> AuthMgr: authenticate(...)
+UI -> Hook: [[../../client/src/features/auth/hooks/useLogin.ts useLogin.mutate(credentials)]]
+Hook -> API: [[../../client/src/features/auth/services/auth.service.ts loginApi()]] POST /api/auth/login
+API -> AuthCtl: [[../../src/main/java/com/mecinema/mecinema/controller/auth/AuthController.java#L33 login(LoginReq)]]
+AuthCtl -> AuthSvc: [[../../src/main/java/com/mecinema/mecinema/service/impl/AuthServiceImpl.java#L53 login(loginReq)]]
+AuthSvc -> AuthMgr: [[../../src/main/java/com/mecinema/mecinema/service/impl/AuthServiceImpl.java#L55 authenticate(...)]]
 alt Sai thông tin
   AuthMgr --> AuthSvc: throw exception
   AuthSvc --> AuthCtl: exception
@@ -88,9 +88,9 @@ alt Sai thông tin
   API --> UI: Thông báo đăng nhập thất bại
 else Thành công
   AuthMgr --> AuthSvc: Authentication
-  AuthSvc -> UserRepo: findByEmail(email)
+  AuthSvc -> UserRepo: [[../../src/main/java/com/mecinema/mecinema/repo/UserRepository.java findByEmail(email)]]
   UserRepo --> AuthSvc: User
-  AuthSvc -> JwtSvc: generate(...)
+  AuthSvc -> JwtSvc: [[../../src/main/java/com/mecinema/mecinema/service/JwtService.java generate(...)]]
   JwtSvc --> AuthSvc: token
   AuthSvc --> AuthCtl: AuthRes(token)
   AuthCtl --> API: 200 + Set-Cookie

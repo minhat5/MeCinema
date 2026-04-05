@@ -10,19 +10,19 @@ skinparam sequence {
 title Sequence - Thanh toán đơn hàng
 
 actor Customer as "Khách hàng"
-participant UI as "BookingConfirmPage/BookingResultPage"
-participant Hook as "usePayment"
-participant API as "apiClient"
-participant Ctl as "PaymentController"
-participant Svc as "PaymentService"
-participant Gateway as "SePay"
+participant UI as "[[../../client/src/features/booking/pages/BookingConfirmPage.tsx BookingConfirmPage/BookingResultPage]]"
+participant Hook as "[[../../client/src/features/booking/hooks/usePayment.ts usePayment]]"
+participant API as "[[../../client/src/lib/api-client.ts apiClient]]"
+control Ctl as "[[../../src/main/java/com/mecinema/mecinema/controller/payment/PaymentController.java PaymentController]]"
+participant Svc as "[[../../src/main/java/com/mecinema/mecinema/service/PaymentService.java PaymentService]]"
+participant Gateway as "[[../../src/main/java/com/mecinema/mecinema/payment/impl/SePayGatewayClient.java SePay]]"
 
 == Khởi tạo thanh toán ==
 Customer -> UI: Bấm Thanh toán
-UI -> Hook: usePayment.mutate(bookingId)
-Hook -> API: POST /api/bookings/{id}/payments
-API -> Ctl: initPayment(currentUser, id, request)
-Ctl -> Svc: initPayment(userId, bookingId, request)
+UI -> Hook: [[../../client/src/features/booking/hooks/usePayment.ts usePayment.mutate({ bookingId })]]
+Hook -> API: [[../../client/src/features/booking/services/payment.service.ts createPaymentApi(bookingId, regenerate)]] POST /api/bookings/{id}/payments
+API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/payment/PaymentController.java#L33 initPayment(currentUser, id, request)]]
+Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/PaymentService.java initPayment(userId, bookingId, request)]]
 Svc -> Gateway: Tạo giao dịch và QR
 Gateway --> Svc: paymentUrl + mã giao dịch
 Svc --> Ctl: PaymentInitResponse
@@ -32,9 +32,9 @@ UI --> Customer: Hiển thị thông tin thanh toán
 
 == Kiểm tra trạng thái thanh toán ==
 loop Trong thời gian chờ thanh toán
-  UI -> API: GET /api/bookings/{id}/payments/status
-  API -> Ctl: checkPaymentStatus(currentUser, id)
-  Ctl -> Svc: checkPaymentStatusAPI(id)
+  UI -> API: [[../../client/src/features/booking/services/payment.service.ts checkPaymentStatusApi(bookingId, paymentId)]] GET /api/bookings/{id}/payments/status
+  API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/payment/PaymentController.java#L24 checkPaymentStatus(currentUser, id, paymentId)]]
+  Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/PaymentService.java checkPaymentStatusAPI(id, paymentId)]]
   Svc --> Ctl: true/false
   Ctl --> API: 200
 end
@@ -47,8 +47,8 @@ end
 
 == Callback từ cổng thanh toán ==
 Gateway -> API: POST /api/payments/callback
-API -> Ctl: callback(authHeader, payload)
-Ctl -> Svc: handleCallback(payload, token)
+API -> Ctl: [[../../src/main/java/com/mecinema/mecinema/controller/payment/PaymentController.java#L42 callback(authHeader, payload)]]
+Ctl -> Svc: [[../../src/main/java/com/mecinema/mecinema/service/PaymentService.java handleCallback(payload, token)]]
 Svc --> Ctl: done
 Ctl --> API: 200
 @enduml
