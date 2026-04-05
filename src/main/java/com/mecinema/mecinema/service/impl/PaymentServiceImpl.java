@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -34,18 +35,41 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentInitResponse initPayment(Long userId, Long bookingId, PaymentInitRequest request) {
         Booking booking = bookingRepository.findByIdAndUserId(bookingId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
-        
+
         if (booking.getStatus() == Status.SUCCESS) {
             throw new BookingException("Booking already paid");
         } else if (booking.getStatus() == Status.FAILED) {
             throw new BookingException("Booking has expired or failed. Please create a new booking.");
         }
 
+        // Idempotency: nếu đã có Payment PENDING cho booking này thì tái sử dụng nó.
+        // Điều này ngăn React StrictMode (mount 2 lần) hoặc user double-click tạo ra
+        // nhiều Payment record khác nhau, khiến polling check sai transactionNo.
+        boolean isRegenerateRequest = request.regenerate() != null && request.regenerate();
+        if (!isRegenerateRequest) {
+            Optional<Payment> existingPending = paymentRepository.findFirstByBookingIdOrderByCreatedAtDesc(bookingId);
+            if (existingPending.isPresent() && existingPending.get().getStatus() == Status.PENDING) {
+                Payment existing = existingPending.get();
+                var redirect = paymentGatewayClient.initCheckout(existing);
+                Instant expiresAt = Instant.now().plusSeconds(redirect.expiresInSeconds());
+                return new PaymentInitResponse(
+                        bookingId,
+                        existing.getId(),
+                        existing.getTransactionNo(),
+                        existing.getPaymentMethod(),
+                        existing.getStatus(),
+                        redirect.paymentUrl(),
+                        expiresAt
+                );
+            }
+        }
+
+        // Tạo Payment mới (lần đầu hoặc khi user bấm "Tạo lại mã")
         Payment payment = new Payment();
         payment.setBooking(booking);
         payment.setPaymentMethod(request.method());
         payment.setStatus(Status.PENDING);
-        
+
         // Generate a short transaction number (e.g. BKG123-A1B2C) to avoid truncation by banks
         String shortUid = UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase();
         payment.setTransactionNo("BKG" + bookingId + shortUid);
@@ -109,20 +133,28 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    public boolean checkPaymentStatusAPI(Long bookingId) {
+    public boolean checkPaymentStatusAPI(Long bookingId, Long paymentId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
 
         if (booking.getStatus() == Status.SUCCESS) {
             return true;
         }
-        
+
         if (booking.getStatus() == Status.FAILED) {
-            return false; // Already failed/expired, prevent checking further
+            return false;
         }
 
-        Payment payment = paymentRepository.findFirstByBookingIdOrderByCreatedAtDesc(bookingId)
-                .orElseThrow(() -> new ResourceNotFoundException("Payment not found for booking"));
+        // Nếu có paymentId cụ thể → check đúng record đó (tránh race condition khi tạo 2 record cùng lúc)
+        // Nếu không có → fallback tìm record mới nhất (backward compatible)
+        Payment payment;
+        if (paymentId != null) {
+            payment = paymentRepository.findById(paymentId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
+        } else {
+            payment = paymentRepository.findFirstByBookingIdOrderByCreatedAtDesc(bookingId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Payment not found for booking"));
+        }
 
         if (payment.getStatus() == Status.SUCCESS) {
             return true;

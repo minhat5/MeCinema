@@ -9,5 +9,5 @@ public interface PaymentService {
 
     void handleCallback(PaymentCallbackRequest request, String token);
 
-    boolean checkPaymentStatusAPI(Long bookingId);
+    boolean checkPaymentStatusAPI(Long bookingId, Long paymentId);
 }

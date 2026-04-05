@@ -31,9 +31,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -116,7 +114,7 @@ class PaymentServiceIntegrationTest {
                 new BookingRequest(showtimeId, List.of(seatId), List.of()));
 
         PaymentInitResponse initResponse = paymentService.initPayment(userId, booking.bookingId(),
-                new PaymentInitRequest(PaymentMethod.SEPAY));
+                new PaymentInitRequest(PaymentMethod.SEPAY, null));
 
         paymentGatewayClient.setSignatureResult(true);
 
@@ -151,7 +149,7 @@ class PaymentServiceIntegrationTest {
                 new BookingRequest(showtimeId, List.of(seatId), List.of()));
 
         PaymentInitResponse initResponse = paymentService.initPayment(userId, booking.bookingId(),
-                new PaymentInitRequest(PaymentMethod.SEPAY));
+                new PaymentInitRequest(PaymentMethod.SEPAY, null));
 
         paymentGatewayClient.setSignatureResult(false);
 
@@ -181,7 +179,7 @@ class PaymentServiceIntegrationTest {
     void initPayment_and_handleCallback_success() {
         BookingResponse booking = bookingService.createBooking(userId,
                 new BookingRequest(showtimeId, List.of(seatId), List.of()));
-        PaymentInitRequest initRequest = new PaymentInitRequest(PaymentMethod.SEPAY);
+        PaymentInitRequest initRequest = new PaymentInitRequest(PaymentMethod.SEPAY, null);
         PaymentInitResponse initResponse = paymentService.initPayment(userId, booking.bookingId(), initRequest);
 
         paymentGatewayClient.setSignatureResult(true);
@@ -222,7 +220,7 @@ class PaymentServiceIntegrationTest {
     void handleCallback_invalidSignature_throwsException() {
         BookingResponse booking = bookingService.createBooking(userId,
                 new BookingRequest(showtimeId, List.of(seatId), List.of()));
-        PaymentInitRequest initRequest = new PaymentInitRequest(PaymentMethod.SEPAY);
+        PaymentInitRequest initRequest = new PaymentInitRequest(PaymentMethod.SEPAY, null);
         PaymentInitResponse initResponse = paymentService.initPayment(userId, booking.bookingId(), initRequest);
 
         paymentGatewayClient.setSignatureResult(false);
@@ -260,25 +258,47 @@ class PaymentServiceIntegrationTest {
     }
 
     @Test
-    void initPayment_multipleAttempts_shouldCreateMultiplePayments() {
+    void initPayment_multipleAttempts_shouldReuseExistingPendingPayment() {
         BookingResponse booking = bookingService.createBooking(userId,
                 new BookingRequest(showtimeId, List.of(seatId), List.of()));
-        
-        // Attempt 1
-        PaymentInitRequest initRequest1 = new PaymentInitRequest(PaymentMethod.SEPAY);
-        PaymentInitResponse initResponse1 = paymentService.initPayment(userId, booking.bookingId(), initRequest1);
-        
-        // Attempt 2
-        PaymentInitRequest initRequest2 = new PaymentInitRequest(PaymentMethod.SEPAY);
-        PaymentInitResponse initResponse2 = paymentService.initPayment(userId, booking.bookingId(), initRequest2);
-        
+
+        // Lần đầu vào trang: tạo mới Payment
+        PaymentInitResponse initResponse1 = paymentService.initPayment(userId, booking.bookingId(),
+                new PaymentInitRequest(PaymentMethod.SEPAY, null));
+
+        // Lần thứ 2 (StrictMode / re-render): phải trả về cùng transactionNo
+        PaymentInitResponse initResponse2 = paymentService.initPayment(userId, booking.bookingId(),
+                new PaymentInitRequest(PaymentMethod.SEPAY, null));
+
+        assertEquals(initResponse1.transactionNo(), initResponse2.transactionNo(),
+                "Lần gọi thứ 2 không được tạo Payment mới — phải tái sử dụng Payment PENDING đã có");
+
         List<Payment> payments = entityManager.createQuery("SELECT p FROM Payment p WHERE p.booking.id = :bookingId", Payment.class)
                 .setParameter("bookingId", booking.bookingId())
                 .getResultList();
-                
+        assertEquals(1, payments.size(), "Chỉ được có 1 Payment record cho booking");
+    }
+
+    @Test
+    void initPayment_withRegenerate_shouldCreateNewPayment() {
+        BookingResponse booking = bookingService.createBooking(userId,
+                new BookingRequest(showtimeId, List.of(seatId), List.of()));
+
+        // Lần đầu: tạo Payment bình thường
+        PaymentInitResponse initResponse1 = paymentService.initPayment(userId, booking.bookingId(),
+                new PaymentInitRequest(PaymentMethod.SEPAY, null));
+
+        // User bấm "Tạo lại mã" (regenerate=true): phải tạo Payment mới
+        PaymentInitResponse initResponse2 = paymentService.initPayment(userId, booking.bookingId(),
+                new PaymentInitRequest(PaymentMethod.SEPAY, true));
+
+        org.junit.jupiter.api.Assertions.assertNotEquals(initResponse1.transactionNo(), initResponse2.transactionNo(),
+                "Khi regenerate=true phải tạo transactionNo mới");
+
+        List<Payment> payments = entityManager.createQuery("SELECT p FROM Payment p WHERE p.booking.id = :bookingId", Payment.class)
+                .setParameter("bookingId", booking.bookingId())
+                .getResultList();
         assertEquals(2, payments.size());
-        assertEquals(initResponse1.transactionNo(), payments.get(0).getTransactionNo());
-        assertEquals(initResponse2.transactionNo(), payments.get(1).getTransactionNo());
     }
 
     @TestConfiguration

@@ -23,4 +23,3 @@ public class BookingProperties {
         private int maxSeats = 10;
     }
 }
-

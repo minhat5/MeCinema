@@ -8,7 +8,7 @@ type Props = {
   onExpire: () => void;
 };
 
-export function BookingTimer({ duration = 600, onExpire, expiresAt }: Props) {
+export function BookingTimer({ duration = 300, onExpire, expiresAt }: Props) {
   const [timeLeft, setTimeLeft] = useState(duration);
   const onExpireRef = useRef(onExpire);
 
@@ -64,7 +64,7 @@ export function BookingTimer({ duration = 600, onExpire, expiresAt }: Props) {
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
   const isUrgent = timeLeft < 60;
-  const percentage = (timeLeft / (expiresAt ? 600 : duration)) * 100;
+  const percentage = (timeLeft / (expiresAt ? 300 : duration)) * 100;
 
   return (
     <Paper
