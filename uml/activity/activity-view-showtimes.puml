@@ -15,8 +15,8 @@ if (Xem theo phim?) then (Có)
   :Gửi yêu cầu GET /api/showtimes/movie/{movieId};
   :Nhận danh sách suất chiếu theo phim;
 else (Không)
-  :Gửi yêu cầu GET /api/showtimes?page&size...;
-  :Nhận danh sách suất chiếu phân trang;
+  :Gửi yêu cầu GET /api/showtimes?page&size...&fromNow=true;
+  :Nhận danh sách suất chiếu tương lai (không gồm quá khứ);
 endif
 if (Có dữ liệu lịch chiếu?) then (Có)
   :Hiển thị lịch chiếu theo ngày/giờ/rạp;

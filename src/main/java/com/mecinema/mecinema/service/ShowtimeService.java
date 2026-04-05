@@ -18,6 +18,7 @@ public interface ShowtimeService {
     List<ShowtimeDTO> getShowtimesByRoom(Long roomId);
     PaginatedResponse<ShowtimeDTO> getShowtimesByCinema(Long cinemaId, Pageable pageable);
     PaginatedResponse<ShowtimeDTO> getUpcomingShowtimes(Pageable pageable);
+    PaginatedResponse<ShowtimeDTO> getFutureShowtimes(Pageable pageable);
     List<ShowtimeDTO> getShowtimesOfDay(LocalDate date);
     PaginatedResponse<ShowtimeDTO> getAllShowtimes(Pageable pageable);
 }

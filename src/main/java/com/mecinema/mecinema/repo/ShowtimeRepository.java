@@ -28,6 +28,8 @@ public interface ShowtimeRepository extends JpaRepository<Showtime, Long> {
     Page<Showtime> findByCinemaId(@Param("cinemaId") Long cinemaId, Pageable pageable);
     @Query("SELECT s FROM Showtime s WHERE s.startTime BETWEEN :now AND :weekLater ORDER BY s.startTime ASC")
     Page<Showtime> findUpcomingShowtimes(@Param("now") LocalDateTime now, @Param("weekLater") LocalDateTime weekLater, Pageable pageable);
+    @Query("SELECT s FROM Showtime s WHERE s.startTime >= :now")
+    Page<Showtime> findFutureShowtimes(@Param("now") LocalDateTime now, Pageable pageable);
     @Query("""
     select (count(b) > 0)
     from Booking b

@@ -273,6 +273,29 @@ public class ShowtimeServiceImpl implements ShowtimeService {
                 .hasPrevious(page.hasPrevious())
                 .build();
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PaginatedResponse<ShowtimeDTO> getFutureShowtimes(Pageable pageable) {
+        log.info("Fetching future showtimes from now");
+
+        LocalDateTime now = LocalDateTime.now();
+        Page<Showtime> page = showtimeRepository.findFutureShowtimes(now, pageable);
+
+        List<ShowtimeDTO> content = page.getContent().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+
+        return PaginatedResponse.<ShowtimeDTO>builder()
+                .content(content)
+                .pageNumber(page.getNumber())
+                .pageSize(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .hasNext(page.hasNext())
+                .hasPrevious(page.hasPrevious())
+                .build();
+    }
     
     @Override
     @Transactional(readOnly = true)

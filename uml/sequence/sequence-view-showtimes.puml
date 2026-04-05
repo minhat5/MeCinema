@@ -33,13 +33,13 @@ Hook --> UI: Nhóm theo ngày và render giờ chiếu
 == Xem lịch chiếu tổng quát có phân trang ==
 User -> UI: Mở trang lịch chiếu tổng hợp
 UI -> Hook: useScheduleShowtimes({page,limit,sort})
-Hook -> API: GET /api/showtimes?page&size&sortBy&sortDirection
+Hook -> API: GET /api/showtimes?page&size&sortBy&sortDirection&fromNow=true
 API -> Ctl: getAllShowtimes(...)
-Ctl -> Svc: getAllShowtimes(pageable)
-Svc -> Repo: findAll(pageable)
+Ctl -> Svc: getFutureShowtimes(pageable)
+Svc -> Repo: findFutureShowtimes(now, pageable)
 Repo --> Svc: Page<Showtime>
 Svc --> Ctl: PaginatedResponse<ShowtimeDTO>
 Ctl --> API: 200 ApiResponse<PaginatedResponse>
 API --> Hook: Dữ liệu phân trang
-Hook --> UI: Hiển thị lịch chiếu theo trang
+Hook --> UI: Hiển thị lịch chiếu tương lai theo trang
 @enduml

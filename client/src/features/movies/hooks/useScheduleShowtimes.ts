@@ -80,6 +80,7 @@ const getScheduleShowtimes = async (params?: ScheduleShowtimeQueryParams) => {
       page,
       size: limit,
       sortDirection: params?.sortDirection ?? 'asc',
+      fromNow: true,
     },
   });
 
@@ -87,7 +88,7 @@ const getScheduleShowtimes = async (params?: ScheduleShowtimeQueryParams) => {
 };
 
 const getScheduleCinemas = async (): Promise<ScheduleCinemaOption[]> => {
-  const response = await apiClient.get('/showtimes', { params: { page: 0, size: 1000 } });
+  const response = await apiClient.get('/showtimes', { params: { page: 0, size: 1000, fromNow: true } });
   const listRaw = (response as any)?.data?.content ?? [];
 
   const cinemasMap = new Map<string, ScheduleCinemaOption>();

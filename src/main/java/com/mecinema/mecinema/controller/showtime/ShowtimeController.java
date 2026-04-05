@@ -43,14 +43,17 @@ public class ShowtimeController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "startTime") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDirection) {
+            @RequestParam(defaultValue = "asc") String sortDirection,
+            @RequestParam(defaultValue = "false") boolean fromNow) {
         
         log.info("GET request to fetch all showtimes with page: {}, size: {}", page, size);
         
         Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
         
-        PaginatedResponse<ShowtimeDTO> result = showtimeService.getAllShowtimes(pageable);
+        PaginatedResponse<ShowtimeDTO> result = fromNow
+                ? showtimeService.getFutureShowtimes(pageable)
+                : showtimeService.getAllShowtimes(pageable);
         
         return ResponseEntity.ok(new ApiResponse<>(
                 HttpStatus.OK.value(),
