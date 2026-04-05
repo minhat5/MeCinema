@@ -4,8 +4,10 @@ import com.mecinema.mecinema.model.dto.movie.MovieRequest;
 import com.mecinema.mecinema.model.entity.Genre;
 import com.mecinema.mecinema.model.entity.Movie;
 import com.mecinema.mecinema.model.enumtype.MovieStatus;
+import com.mecinema.mecinema.model.enumtype.Status;
 import com.mecinema.mecinema.repo.GenreRepository;
 import com.mecinema.mecinema.repo.MovieRepository;
+import com.mecinema.mecinema.repo.ShowtimeRepository;
 import com.mecinema.mecinema.service.MovieService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -21,6 +24,7 @@ import java.util.stream.Collectors;
 public class MovieServiceImpl implements MovieService {
     private final MovieRepository movieRepository;
     private final GenreRepository genreRepository;
+    private final ShowtimeRepository showtimeRepository;
 
     private Set<Genre> resolveGenres(Set<String> genres) {
         if (genres == null || genres.isEmpty()) {
@@ -67,6 +71,21 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public Movie update(Long id, MovieRequest movie) {
         Movie updatingMovie = movieRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Không tìm thấy phim với id: " + id));
+        boolean titleChanged = movie.title() != null && !movie.title().trim().equalsIgnoreCase(updatingMovie.getTitle());
+
+        if (titleChanged) {
+            boolean hasPaidBooking = showtimeRepository.existsBookingByMovieAndStatus(id, Status.SUCCESS);
+            if (hasPaidBooking) {
+                throw new IllegalStateException("Không thể đổi tên phim vì đã có vé thanh toán thành công.");
+            }
+
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime threshold = now.plusHours(24);
+            boolean hasSoonShowtime = showtimeRepository.existsShowtimeStartingSoon(id, now, threshold);
+            if (hasSoonShowtime) {
+                throw new IllegalStateException("Không thể đổi tên phim vì có suất chiếu sắp diễn ra trong 24 giờ.");
+            }
+        }
         updatingMovie.setTitle(movie.title());
         updatingMovie.setDescription(movie.description());
         updatingMovie.setReleaseDate(movie.releaseDate());

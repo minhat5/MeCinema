@@ -1,6 +1,7 @@
 package com.mecinema.mecinema.repo;
 
 import com.mecinema.mecinema.model.entity.Showtime;
+import com.mecinema.mecinema.model.enumtype.Status;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,9 +21,6 @@ public interface ShowtimeRepository extends JpaRepository<Showtime, Long> {
     @Query("SELECT s FROM Showtime s WHERE s.startTime >= :startDate AND s.endTime <= :endDate ORDER BY s.startTime ASC")
     List<Showtime> findShowtimesBetween(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
     @Query("SELECT s FROM Showtime s WHERE s.movie.id = :movieId AND s.startTime >= :startDate AND s.endTime <= :endDate ORDER BY s.startTime ASC")
-    List<Showtime> findShowtimesByMovieAndDateRange(@Param("movieId") Long movieId, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
-    @Query("SELECT s FROM Showtime s WHERE s.room.id = :roomId AND (" +
-           "(s.startTime < :endTime AND s.endTime > :startTime)) ORDER BY s.startTime ASC")
     List<Showtime> findConflictingShowtimes(@Param("roomId") Long roomId, 
                                              @Param("startTime") LocalDateTime startTime, 
                                              @Param("endTime") LocalDateTime endTime);
@@ -30,11 +28,24 @@ public interface ShowtimeRepository extends JpaRepository<Showtime, Long> {
     Page<Showtime> findByCinemaId(@Param("cinemaId") Long cinemaId, Pageable pageable);
     @Query("SELECT s FROM Showtime s WHERE s.startTime BETWEEN :now AND :weekLater ORDER BY s.startTime ASC")
     Page<Showtime> findUpcomingShowtimes(@Param("now") LocalDateTime now, @Param("weekLater") LocalDateTime weekLater, Pageable pageable);
-    @Query("SELECT COUNT(s) FROM Showtime s WHERE s.room.id = :roomId AND s.id != :excludeShowtimeId AND " +
-           "(s.startTime < :endTime AND s.endTime > :startTime)")
-    long countConflictingShowtimesExcludingOne(@Param("roomId") Long roomId,
-                                                @Param("excludeShowtimeId") Long excludeShowtimeId,
-                                                @Param("startTime") LocalDateTime startTime,
-                                                @Param("endTime") LocalDateTime endTime);
+    @Query("""
+    select (count(b) > 0)
+    from Booking b
+    join b.showtime s
+    where s.movie.id = :movieId
+      and b.status = :status
+""")
+    boolean existsBookingByMovieAndStatus(@Param("movieId") Long movieId,
+                                          @Param("status") Status status);
+
+    @Query("""
+    select (count(s) > 0)
+    from Showtime s
+    where s.movie.id = :movieId
+      and s.startTime between :now and :threshold
+""")
+    boolean existsShowtimeStartingSoon(@Param("movieId") Long movieId,
+                                       @Param("now") LocalDateTime now,
+                                       @Param("threshold") LocalDateTime threshold);
 }
 

@@ -17,6 +17,8 @@ participant Sec as "@PreAuthorize(ADMIN)"
 participant Ctl as "AdminMovieController"
 participant Svc as "MovieServiceImpl"
 database MovieRepo as "MovieRepository"
+database BookingRepo as "BookingRepository"
+database ShowtimeRepo as "ShowtimeRepository"
 database GenreRepo as "GenreRepository"
 
 == Tải danh sách + bộ lọc ==
@@ -76,12 +78,39 @@ alt Không tồn tại
   API --> UI: Báo không tìm thấy phim
 else Tồn tại
   MovieRepo --> Svc: Movie
-  Svc -> GenreRepo: resolveGenres(...)
-  Svc -> MovieRepo: save(updatedMovie)
-  MovieRepo --> Svc: Movie
-  Svc --> Ctl: Movie
-  Ctl --> API: 200
-  API --> UI: Làm mới danh sách
+  alt Có đổi tên phim
+    Svc -> BookingRepo: existsByMovieIdAndStatus(id, SUCCESS)
+    alt Đã có booking SUCCESS
+      BookingRepo --> Svc: true
+      Svc --> Ctl: IllegalStateException
+      Ctl --> API: 400
+      API --> UI: Báo không thể đổi tên\n(vì đã có vé thanh toán)
+    else Chưa có booking SUCCESS
+      BookingRepo --> Svc: false
+      Svc -> ShowtimeRepo: existsByMovieIdAndStartTimeBetween(id, now, now+24h)
+      alt Có suất chiếu trong 24h tới
+        ShowtimeRepo --> Svc: true
+        Svc --> Ctl: IllegalStateException
+        Ctl --> API: 400
+        API --> UI: Báo không thể đổi tên\n(vì suất chiếu sắp diễn ra)
+      else Không có suất chiếu gần giờ
+        ShowtimeRepo --> Svc: false
+        Svc -> GenreRepo: resolveGenres(...)
+        Svc -> MovieRepo: save(updatedMovie)
+        MovieRepo --> Svc: Movie
+        Svc --> Ctl: Movie
+        Ctl --> API: 200
+        API --> UI: Làm mới danh sách
+      end
+    end
+  else Không đổi tên phim
+    Svc -> GenreRepo: resolveGenres(...)
+    Svc -> MovieRepo: save(updatedMovie)
+    MovieRepo --> Svc: Movie
+    Svc --> Ctl: Movie
+    Ctl --> API: 200
+    API --> UI: Làm mới danh sách
+  end
 end
 
 == Xóa phim ==

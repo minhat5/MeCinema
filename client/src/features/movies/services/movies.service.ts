@@ -122,26 +122,9 @@ export const getUpcoming = async (limit = 10): Promise<{ data: MovieResponse[] }
   return { data: response.data.data.filter((movie) => movie.status === 'UPCOMING') };
 };
 
-export const getMovieBySlug = async (slug: string): Promise<{ data: MovieResponse }> => {
-  const response = await getMovies({ search: slug, page: 1, limit: 1 });
-  const first = response.data.data[0];
-  if (!first) {
-    throw new Error('Khong tim thay phim');
-  }
-  return { data: first };
-};
-
 export const getMovieById = async (id: string): Promise<{ data: MovieResponse }> => {
   const response = await apiClient.get(`/movie/${id}`);
   return { data: mapMovie(response as unknown as BackendMovie) };
-};
-
-export const getRelatedMovies = async (
-  movieId: string,
-  limit = 6,
-): Promise<{ data: MovieResponse[] }> => {
-  const response = await getMovies({ page: 1, limit: limit + 1 });
-  return { data: response.data.data.filter((movie) => movie._id !== movieId).slice(0, limit) };
 };
 
 export const getCinemas = async (_params?: Record<string, any>) => {

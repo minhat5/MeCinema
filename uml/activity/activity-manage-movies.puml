@@ -30,8 +30,21 @@ if (Chọn thêm phim?) then (Có)
 elseif (Chọn sửa phim?) then (Có)
   :Tải dữ liệu phim cần sửa;
   if (Phim tồn tại?) then (Có)
-    :Lưu cập nhật;
-    :Làm mới danh sách;
+    if (Có đổi tên phim?) then (Có)
+      if (Đã có booking thành công?) then (Có)
+        :Thông báo không thể đổi tên\n(vì đã có vé thanh toán);
+      else (Không)
+        if (Có suất chiếu trong 24h tới?) then (Có)
+          :Thông báo không thể đổi tên\n(vì suất chiếu sắp diễn ra);
+        else (Không)
+          :Lưu cập nhật;
+          :Làm mới danh sách;
+        endif
+      endif
+    else (Không)
+      :Lưu cập nhật;
+      :Làm mới danh sách;
+    endif
   else (Không)
     :Thông báo không tìm thấy phim;
   endif
