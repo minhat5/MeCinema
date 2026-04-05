@@ -33,7 +33,7 @@ import { BookingTimer } from '../components/BookingTimer';
 export default function BookingConfirmPage() {
   const { bookingId } = useParams();
   const navigate = useNavigate();
-  const { data: booking, isLoading } = useBookingDetail(bookingId!);
+  const { data: booking, isLoading, isError } = useBookingDetail(bookingId!);
   const [isExpired, setIsExpired] = useState(false);
 
   const {
@@ -44,6 +44,20 @@ export default function BookingConfirmPage() {
     handleStay,
     markPaid,
   } = useBookingGuard({ bookingId: bookingId!, isExpired });
+
+  if (isError) {
+    return (
+      <Center h="70vh" bg="#020617">
+        <Stack align="center" gap="md">
+          <Text fw={800} size="xl" c="red.4">❌ Không tìm thấy đơn hàng</Text>
+          <Text c="gray.4" ta="center" maw={400}>
+            Đơn hàng này không tồn tại hoặc bạn không có quyền truy cập.
+          </Text>
+          <Button color="yellow" onClick={() => navigate('/phim')}>Chọn phim khác</Button>
+        </Stack>
+      </Center>
+    );
+  }
 
   if (isLoading || !booking) {
     return (
@@ -117,7 +131,7 @@ export default function BookingConfirmPage() {
         {!isExpired && (
           <Box w={200} mb="xl">
             <BookingTimer
-              expiresAt={new Date(new Date(booking.createdAt).getTime() + 2 * 60 * 1000)}
+              expiresAt={new Date(new Date(booking.createdAt).getTime() + 5 * 60 * 1000)}
               onExpire={onExpire}
             />
           </Box>

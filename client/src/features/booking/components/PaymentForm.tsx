@@ -32,29 +32,41 @@ type Props = {
 
 export function PaymentForm({ bookingId, totalPrice, isExpired = false, onPaymentSuccess }: Props) {
   const [qrUrl, setQrUrl] = useState('');
+  const [paymentId, setPaymentId] = useState<number | undefined>();
   const navigate = useNavigate();
   const { mutate: pay, isPending } = usePayment();
 
   const { isRedirecting, checkManually } = usePaymentStatus({
     bookingId,
     qrUrl,
+    paymentId,
     isExpired,
     onSuccess: onPaymentSuccess,
   });
 
-  const generateQRCode = () => {
+  const generateQRCode = (regenerate = false) => {
     if (isExpired) return;
-    pay(bookingId, {
-      onSuccess: (res) => setQrUrl(res.data.paymentUrl),
-    });
+    pay(
+      { bookingId, regenerate },
+      {
+        onSuccess: (res) => {
+          setQrUrl(res.data.paymentUrl);
+          setPaymentId(res.data.paymentId);
+        },
+      },
+    );
   };
 
-  // Tự động tạo QR khi component mount
+  // Tự động tạo QR khi bookingId có sẵn.
+  // Gọi 2 lần trong StrictMode là an toàn vì backend đã idempotent:
+  // lần 1 (component cũ) onSuccess bị bỏ qua do unmount;
+  // lần 2 (component mới) onSuccess set qrUrl thành công.
   useEffect(() => {
-    if (bookingId && !qrUrl && !isPending && !isExpired) {
-      generateQRCode();
+    if (bookingId && !isExpired) {
+      generateQRCode(false);
     }
-  }, [bookingId, qrUrl, isPending, isExpired]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookingId]);
 
   // ── UI HẾT HẠN ────────────────────────────────────────────────
   if (isExpired) {
@@ -141,7 +153,7 @@ export function PaymentForm({ bookingId, totalPrice, isExpired = false, onPaymen
                   >
                     TÔI ĐÃ CHUYỂN TIỀN XONG
                   </Button>
-                  <Button variant="subtle" color="gray.4" onClick={generateQRCode} loading={isPending}>
+                  <Button variant="subtle" color="gray.4" onClick={() => generateQRCode(true)} loading={isPending}>
                     Mã lỗi/Giao dịch nghi ngờ? Tạo lại mã thanh toán
                   </Button>
                 </Stack>

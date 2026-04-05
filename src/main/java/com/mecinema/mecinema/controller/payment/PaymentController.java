@@ -23,8 +23,9 @@ public class PaymentController {
     @GetMapping("/api/bookings/{id}/payments/status")
     public ResponseEntity<Boolean> checkPaymentStatus(
             @CurrentUser CustomUserDetails userDetails,
-            @PathVariable("id") Long id) {
-        boolean isSuccess = paymentService.checkPaymentStatusAPI(id);
+            @PathVariable("id") Long id,
+            @RequestParam(value = "paymentId", required = false) Long paymentId) {
+        boolean isSuccess = paymentService.checkPaymentStatusAPI(id, paymentId);
         return ResponseEntity.ok(isSuccess);
     }
 

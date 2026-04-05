@@ -10,6 +10,7 @@ import { checkPaymentStatusApi } from '../services/payment.service';
 interface UsePaymentStatusOptions {
   bookingId: string;
   qrUrl: string;
+  paymentId?: number;
   isExpired: boolean;
   onSuccess?: () => void;
 }
@@ -17,6 +18,7 @@ interface UsePaymentStatusOptions {
 export function usePaymentStatus({
   bookingId,
   qrUrl,
+  paymentId,
   isExpired,
   onSuccess,
 }: UsePaymentStatusOptions) {
@@ -28,7 +30,7 @@ export function usePaymentStatus({
 
     const interval = setInterval(async () => {
       try {
-        const isSuccess = await checkPaymentStatusApi(bookingId);
+        const isSuccess = await checkPaymentStatusApi(bookingId, paymentId);
         if (isSuccess) {
           clearInterval(interval);
           setIsRedirecting(true);
@@ -45,13 +47,13 @@ export function usePaymentStatus({
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [bookingId, qrUrl, isRedirecting, isExpired]);
+  }, [bookingId, qrUrl, paymentId, isRedirecting, isExpired]);
 
   // Manual check khi user nhấn "Tôi đã chuyển tiền xong"
   const checkManually = async () => {
     setIsRedirecting(true);
     try {
-      const isSuccess = await checkPaymentStatusApi(bookingId);
+      const isSuccess = await checkPaymentStatusApi(bookingId, paymentId);
       if (isSuccess) {
         notifications.show({
           title: 'Thành công',
