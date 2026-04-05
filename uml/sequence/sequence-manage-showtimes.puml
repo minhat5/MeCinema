@@ -14,8 +14,10 @@ participant UI as "ManageShowtimesPage"
 participant Hook as "useShowtimeCRUD"
 participant API as "apiClient"
 participant Ctl as "ShowtimeController"
-participant Svc as "ShowtimeService"
-database Repo as "ShowtimeRepository"
+participant Svc as "ShowtimeServiceImpl"
+database ShowtimeRepo as "ShowtimeRepository"
+database RoomRepo as "RoomRepository"
+database BookingRepo as "BookingRepository"
 
 == Tải danh sách suất chiếu ==
 Admin -> UI: Mở /admin/showtimes
@@ -23,8 +25,8 @@ UI -> Hook: useShowtimes({page, limit, sort})
 Hook -> API: GET /api/showtimes?page&size&sortBy&sortDirection
 API -> Ctl: getAllShowtimes(...)
 Ctl -> Svc: getAllShowtimes(pageable)
-Svc -> Repo: findAll(pageable)
-Repo --> Svc: Page<Showtime>
+Svc -> ShowtimeRepo: findAll(pageable)
+ShowtimeRepo --> Svc: Page<Showtime>
 Svc --> Ctl: PaginatedResponse<ShowtimeDTO>
 Ctl --> API: 200 ApiResponse
 API --> UI: Render bảng suất chiếu
@@ -34,8 +36,8 @@ UI -> Hook: useCreateShowtime(payload)
 Hook -> API: POST /api/showtimes
 API -> Ctl: createShowtime(request)
 Ctl -> Svc: createShowtime(request)
-Svc -> Repo: save(showtime)
-Repo --> Svc: Showtime
+Svc -> ShowtimeRepo: save(showtime)
+ShowtimeRepo --> Svc: Showtime
 Svc --> Ctl: ShowtimeDTO
 Ctl --> API: 201
 API --> UI: Thông báo thành công
@@ -46,14 +48,65 @@ alt Cập nhật
   Hook -> API: PUT /api/showtimes/{id}
   API -> Ctl: updateShowtime(id, request)
   Ctl -> Svc: updateShowtime(id, request)
-  Svc -> Repo: save(updatedShowtime)
-  Ctl --> API: 200
+  Svc -> ShowtimeRepo: findById(id)
+  alt Không tìm thấy suất chiếu
+    ShowtimeRepo --> Svc: empty
+    Svc --> Ctl: RuntimeException
+    Ctl --> API: 400
+    API --> UI: Báo lỗi không tìm thấy suất chiếu
+  else Tìm thấy suất chiếu
+    ShowtimeRepo --> Svc: Showtime
+    alt request có roomId mới
+      Svc -> RoomRepo: findById(roomId)
+      alt Không tìm thấy phòng mới
+        RoomRepo --> Svc: empty
+        Svc --> Ctl: RuntimeException
+        Ctl --> API: 400
+        API --> UI: Báo lỗi phòng không tồn tại
+      else Tìm thấy phòng mới
+        RoomRepo --> Svc: Room
+        alt Đổi sang cơ sở khác
+          Svc -> BookingRepo: existsByShowtimeIdAndStatusIn(id, [PENDING, SUCCESS])
+          alt Đã có người đặt vé
+            BookingRepo --> Svc: true
+            Svc --> Ctl: RuntimeException
+            Ctl --> API: 400
+            API --> UI: Báo lỗi không thể đổi sang cơ sở khác
+          else Chưa có booking PENDING/SUCCESS
+            BookingRepo --> Svc: false
+            Svc -> Svc: setRoom(newRoom)
+          end
+        else Không đổi cơ sở
+          Svc -> Svc: setRoom(newRoom)
+        end
+      end
+    else Không đổi phòng
+      Svc -> Svc: giữ nguyên phòng hiện tại
+    end
+    alt Có đổi thời gian hoặc đổi phòng
+      Svc -> Svc: validateShowtimeTime(startTime, endTime)
+      Svc -> ShowtimeRepo: findConflictingShowtimes(roomId, startTime, endTime)
+      alt Trùng lịch
+        ShowtimeRepo --> Svc: danh sách conflict
+        Svc --> Ctl: RuntimeException
+        Ctl --> API: 400
+        API --> UI: Báo lỗi trùng lịch chiếu
+      else Không trùng lịch
+        ShowtimeRepo --> Svc: rỗng
+      end
+    end
+    Svc -> ShowtimeRepo: save(updatedShowtime)
+    ShowtimeRepo --> Svc: Showtime
+    Svc --> Ctl: ShowtimeDTO
+    Ctl --> API: 200
+    API --> UI: Thông báo cập nhật thành công
+  end
 else Hủy/Xóa
   UI -> Hook: useCancelShowtime(id)
   Hook -> API: DELETE /api/showtimes/{id}
   API -> Ctl: deleteShowtime(id)
   Ctl -> Svc: deleteShowtime(id)
-  Svc -> Repo: deleteById(id)
+  Svc -> ShowtimeRepo: deleteById(id)
   Ctl --> API: 200
 end
 @enduml

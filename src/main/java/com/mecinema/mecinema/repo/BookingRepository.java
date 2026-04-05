@@ -9,9 +9,12 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long>, BookingRepositoryExtended {
+
+    boolean existsByShowtimeIdAndStatusIn(Long showtimeId, Collection<Status> statuses);
 
 
     @Modifying

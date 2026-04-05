@@ -7,6 +7,8 @@ import com.mecinema.mecinema.model.dto.showtimes.UpdateShowtimeRequest;
 import com.mecinema.mecinema.model.entity.Movie;
 import com.mecinema.mecinema.model.entity.Room;
 import com.mecinema.mecinema.model.entity.Showtime;
+import com.mecinema.mecinema.model.enumtype.Status;
+import com.mecinema.mecinema.repo.BookingRepository;
 import com.mecinema.mecinema.repo.MovieRepository;
 import com.mecinema.mecinema.repo.RoomRepository;
 import com.mecinema.mecinema.repo.ShowtimeRepository;
@@ -23,6 +25,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,6 +36,7 @@ import java.util.stream.Collectors;
 public class ShowtimeServiceImpl implements ShowtimeService {
     
     private final ShowtimeRepository showtimeRepository;
+    private final BookingRepository bookingRepository;
     private final MovieRepository movieRepository;
     private final RoomRepository roomRepository;
     
@@ -105,6 +109,31 @@ public class ShowtimeServiceImpl implements ShowtimeService {
                     log.error("Showtime not found with id: {}", id);
                     return new RuntimeException("Lịch chiếu không tồn tại với ID: " + id);
                 });
+
+        Room currentRoom = showtime.getRoom();
+        Room targetRoom = currentRoom;
+
+        // Cho phép đổi phòng chiếu. Nếu đổi sang cơ sở khác thì chặn khi đã có người đặt vé.
+        if (request.getRoomId() != null) {
+            targetRoom = roomRepository.findById(request.getRoomId())
+                    .orElseThrow(() -> {
+                        log.error("Room not found with id: {}", request.getRoomId());
+                        return new RuntimeException("Phòng chiếu không tồn tại với ID: " + request.getRoomId());
+                    });
+
+            boolean cinemaChanged = !targetRoom.getCinema().getId().equals(currentRoom.getCinema().getId());
+            if (cinemaChanged) {
+                boolean hasBookings = bookingRepository.existsByShowtimeIdAndStatusIn(
+                        id,
+                        Set.of(Status.PENDING, Status.SUCCESS)
+                );
+                if (hasBookings) {
+                    throw new RuntimeException("Không thể đổi lịch chiếu sang cơ sở khác vì đã có người đặt vé.");
+                }
+            }
+
+            showtime.setRoom(targetRoom);
+        }
         
         // Update startTime if provided
         if (request.getStartTime() != null) {
@@ -121,13 +150,16 @@ public class ShowtimeServiceImpl implements ShowtimeService {
             showtime.setBasePrice(request.getBasePrice());
         }
         
-        // Validate time if either time was updated
-        if (request.getStartTime() != null || request.getEndTime() != null) {
+        boolean timeChanged = request.getStartTime() != null || request.getEndTime() != null;
+        boolean roomChanged = request.getRoomId() != null && !targetRoom.getId().equals(currentRoom.getId());
+
+        // Validate lại nếu đổi thời gian hoặc đổi phòng.
+        if (timeChanged || roomChanged) {
             validateShowtimeTime(showtime.getStartTime(), showtime.getEndTime());
             
             // Check for conflicting showtimes (excluding current showtime)
             List<Showtime> conflicts = showtimeRepository.findConflictingShowtimes(
-                    showtime.getRoom().getId(), 
+                    showtime.getRoom().getId(),
                     showtime.getStartTime(), 
                     showtime.getEndTime()
             );

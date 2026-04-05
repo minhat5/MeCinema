@@ -24,5 +24,8 @@ public class UpdateShowtimeRequest {
     
     @Positive(message = "Giá vé phải là số dương")
     private BigDecimal basePrice;
+
+    @Positive(message = "ID phòng chiếu phải là số dương")
+    private Long roomId;
 }
 

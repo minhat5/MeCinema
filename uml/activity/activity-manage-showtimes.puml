@@ -16,7 +16,25 @@ if (Chọn tạo suất chiếu?) then (Có)
   :Nhập thời gian bắt đầu/kết thúc và giá cơ bản;
   :Gửi yêu cầu tạo;
 elseif (Chọn cập nhật suất chiếu?) then (Có)
-  :Cập nhật thời gian hoặc giá;
+  :Tải thông tin suất chiếu hiện tại;
+  :Nhập dữ liệu cập nhật (thời gian, giá, phòng);
+  if (Có đổi phòng?) then (Có)
+    if (Phòng mới thuộc cơ sở khác?) then (Có)
+      if (Đã có booking PENDING/SUCCESS?) then (Có)
+        :Từ chối cập nhật;
+        :Thông báo không thể đổi sang cơ sở khác
+        vì đã có người đặt vé;
+      else (Không)
+        :Cho phép đổi phòng;
+      endif
+    else (Không)
+      :Cho phép đổi phòng trong cùng cơ sở;
+    endif
+  endif
+  if (Có đổi thời gian hoặc đổi phòng?) then (Có)
+    :Kiểm tra hợp lệ thời gian;
+    :Kiểm tra trùng lịch theo phòng;
+  endif
   :Gửi yêu cầu cập nhật;
 else (Hủy/Xóa suất chiếu)
   :Xác nhận hủy;
