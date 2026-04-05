@@ -79,27 +79,41 @@ export function useAdminCinemasForRooms() {
   return useQuery({
     queryKey: ['admin-cinemas-for-rooms'],
     queryFn: async (): Promise<AdminCinemaOption[]> => {
-      const res = (await apiClient.get('/cinemas', {
-        params: { limit: 100, page: 0 },
-      })) as
-        | BackendPage<{ id?: number; _id?: string; name: string; city?: string }>
-        | ApiResponse<
-            | BackendPage<{ id?: number; _id?: string; name: string; city?: string }>
-            | Array<{ id?: number; _id?: string; name: string; city?: string }>
-          >;
+      type RawCinema = { id?: number; _id?: string; name: string; city?: string };
+      type RawCinemaPage = BackendPage<RawCinema>;
 
-      const payload = (res as ApiResponse<unknown>)?.data ?? res;
-      const list = Array.isArray(payload)
-        ? payload
-        : ((payload as BackendPage<{ id?: number; _id?: string; name: string; city?: string }>)?.content ?? []);
+      const size = 100;
+      let page = 0;
+      let totalPages = 1;
+      const all: RawCinema[] = [];
 
-      return list
+      do {
+        const res = (await apiClient.get('/cinemas', {
+          params: { page, size },
+        })) as RawCinemaPage | ApiResponse<RawCinemaPage | RawCinema[]>;
+
+        const payload = (res as ApiResponse<unknown>)?.data ?? res;
+        const list = Array.isArray(payload)
+          ? payload
+          : ((payload as RawCinemaPage)?.content ?? []);
+
+        all.push(...(list as RawCinema[]));
+
+        const serverTotalPages = Number((payload as RawCinemaPage)?.totalPages ?? 1);
+        totalPages = Number.isFinite(serverTotalPages) && serverTotalPages > 0 ? serverTotalPages : 1;
+        page += 1;
+      } while (page < totalPages);
+
+      const mapped = all
         .map((c) => ({
           id: c.id ?? Number(c._id),
           name: c.name,
           city: c.city,
         }))
         .filter((c) => Number.isFinite(c.id));
+
+      // Deduplicate by id in case backend responses overlap between pages.
+      return Array.from(new Map(mapped.map((c) => [c.id, c])).values());
     },
   });
 }
