@@ -472,7 +472,7 @@ export default function ProfileInfoPage() {
                   {displayName}
                 </h1>
                 <p className="mt-1 text-sm text-white/70 sm:text-base">
-                  Hồ sơ thành viên Micinema
+                  Hồ sơ thành viên MeCinema
                 </p>
               </div>
             </div>
