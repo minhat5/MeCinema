@@ -102,7 +102,7 @@ export default function LoginPage() {
             <Group gap="xs">
               <Film size={32} color="#e11d48" />
               <Title order={2} fw={900} lts={-1} c="white">
-                MICINEMA
+                MECINEMA
               </Title>
             </Group>
           </Center>
