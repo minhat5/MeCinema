@@ -50,6 +50,7 @@ public class WebSecurityConfig {
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/movie/cinemas/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/showtimes/**").permitAll()
+                        .requestMatchers("/api/showtimes", "/api/showtimes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/rooms/*/seat-map").permitAll()
                         .requestMatchers(
                                 "/api/admin/**",
