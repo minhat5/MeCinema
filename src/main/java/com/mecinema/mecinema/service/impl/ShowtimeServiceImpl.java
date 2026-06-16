@@ -99,8 +99,7 @@ public class ShowtimeServiceImpl implements ShowtimeService {
             targetRoom = roomRepository.findById(request.getRoomId())
                     .orElseThrow(() -> new RuntimeException("Phòng chiếu không tồn tại với ID: " + request.getRoomId()));
 
-            boolean cinemaChanged = !targetRoom.getCinema().getId().equals(currentRoom.getCinema().getId());
-            if (cinemaChanged) {
+            if (!targetRoom.getCinema().getId().equals(currentRoom.getCinema().getId())) {
                 boolean hasBookings = bookingRepository.existsByShowtimeIdAndStatusIn(
                         id,
                         Set.of(Status.PENDING, Status.SUCCESS)
@@ -129,10 +128,9 @@ public class ShowtimeServiceImpl implements ShowtimeService {
         }
         
         boolean timeChanged = request.getStartTime() != null || request.getEndTime() != null;
-        boolean roomChanged = request.getRoomId() != null && !targetRoom.getId().equals(currentRoom.getId());
 
         // Validate lại nếu đổi thời gian hoặc đổi phòng.
-        if (timeChanged || roomChanged) {
+        if (timeChanged || (request.getRoomId() != null && !targetRoom.getId().equals(currentRoom.getId()))) {
             validateShowtimeTime(showtime.getStartTime(), showtime.getEndTime());
             
             // Check for conflicting showtimes (excluding current showtime)
