@@ -15,6 +15,7 @@ import type {
   ShowtimeType,
   MovieType,
   RoomType,
+  CinemaBrief,
 } from '@shared/index';
 import moment from 'moment';
 
@@ -26,9 +27,11 @@ export function TicketResult({ booking }: Props) {
   const showtime = booking.showtimeId as unknown as ShowtimeType & {
     movieId: MovieType;
     roomId: RoomType;
+    cinemaId: CinemaBrief;
   };
   const movie = showtime.movieId;
   const room = showtime.roomId;
+  const cinema = showtime.cinemaId;
 
   return (
     <Stack gap="xl" align="center" w="100%">
@@ -93,7 +96,20 @@ export function TicketResult({ booking }: Props) {
               <Text size="xs" c="gray.6" fw={700}>
                 RẠP / PHÒNG
               </Text>
-              <Text fw={800}>{room.name}</Text>
+              <Text fw={800}>{cinema?.name || 'N/A'}</Text>
+              <Text size="sm" c="gray.7">
+                {room.name}
+              </Text>
+              {cinema?.address && (
+                <Text size="xs" c="gray.6">
+                  {cinema.address}
+                </Text>
+              )}
+              {cinema?.hotline && (
+                <Text size="xs" c="gray.6">
+                  Hotline: {cinema.hotline}
+                </Text>
+              )}
             </Stack>
           </Group>
 

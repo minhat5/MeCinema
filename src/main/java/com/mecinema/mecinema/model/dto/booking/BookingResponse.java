@@ -27,7 +27,9 @@ public record BookingResponse(
             Long roomId,
             String roomName,
             Long cinemaId,
-            String cinemaName
+            String cinemaName,
+            String cinemaAddress,
+            String cinemaHotline
     ) {
     }
 

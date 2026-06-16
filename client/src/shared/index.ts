@@ -96,6 +96,13 @@ export interface ShowtimeType {
   price: number;
 }
 
+export interface CinemaBrief {
+  _id: string;
+  name?: string;
+  address?: string;
+  hotline?: string;
+}
+
 export interface PaginationMeta {
   currentPage: number;
   totalItems: number;

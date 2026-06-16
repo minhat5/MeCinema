@@ -5,6 +5,7 @@ import {
   ChevronRight,
   KeyRound,
   LogOut,
+  MapPin,
   Mail,
   Phone,
   ShieldCheck,
@@ -24,6 +25,9 @@ type TicketItem = {
   movieTitle: string;
   showtime: string;
   seat: string;
+  cinemaName: string;
+  cinemaAddress: string;
+  cinemaHotline: string;
   status: 'PAID' | 'PENDING' | 'CANCELLED';
 };
 
@@ -128,6 +132,9 @@ export default function ProfileInfoPage() {
       movieTitle: b.showtimeId?.movieId?.title || 'Unknown Movie',
       showtime: b.showtimeId?.startTime ? new Date(b.showtimeId.startTime).toLocaleString('vi-VN') : 'Unknown Time',
       seat: b.seats?.map((s: any) => `${s.row}${s.column}`).join(', ') || 'N/A',
+      cinemaName: b.showtimeId?.cinemaId?.name || 'N/A',
+      cinemaAddress: b.showtimeId?.cinemaId?.address || 'N/A',
+      cinemaHotline: b.showtimeId?.cinemaId?.hotline || 'N/A',
       status: b.status,
     }));
   }, [bookingsData]);
@@ -250,6 +257,15 @@ export default function ProfileInfoPage() {
                   </div>
                   <div className="text-sm text-white/70 mt-2">
                     <p className="mb-1"><span className="font-semibold text-white/90">Mã đặt vé:</span> {ticket.id}</p>
+                    <p className="mb-1"><span className="font-semibold text-white/90">Rạp:</span> {ticket.cinemaName}</p>
+                    <p className="mb-1 flex items-start gap-1">
+                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-rose-300" />
+                      <span>{ticket.cinemaAddress}</span>
+                    </p>
+                    <p className="mb-1 flex items-center gap-1">
+                      <Phone className="h-4 w-4 shrink-0 text-rose-300" />
+                      <span>{ticket.cinemaHotline}</span>
+                    </p>
                     <p className="mb-1"><span className="font-semibold text-white/90">Suất chiếu:</span> {ticket.showtime}</p>
                     <p><span className="font-semibold text-white/90">Ghế ngồi:</span> {ticket.seat}</p>
                   </div>

@@ -27,6 +27,8 @@ export function mapShowtime(res: any) {
     cinemaId: {
       _id: String(res.showtime?.cinemaId),
       name: res.showtime?.cinemaName,
+      address: res.showtime?.cinemaAddress,
+      hotline: res.showtime?.cinemaHotline,
     },
   };
 }
