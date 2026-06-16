@@ -103,7 +103,6 @@ public class PaymentServiceImpl implements PaymentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
 
         if (payment.getStatus() == Status.SUCCESS) {
-            log.info("Payment with transactionNo {} arrived late hook or duplicated, ignored", transactionNo);
             return; // Already processed
         }
 
@@ -111,8 +110,6 @@ public class PaymentServiceImpl implements PaymentService {
         
         // If booking is already failed (e.g. timeout), log it. Money must be refunded manually.
         if (booking.getStatus() == Status.FAILED && request.transferAmount().compareTo(booking.getTotalPrice()) >= 0) {
-            log.error("LATE PAYMENT RECEIVED! Booking {} was FAILED but received {} from {}. Manual refund required.", 
-                      booking.getId(), request.transferAmount(), transactionNo);
             payment.setStatus(Status.SUCCESS);
             // Do not change booking status to SUCCESS to avoid double-booking the same seat!
             return;
@@ -123,8 +120,6 @@ public class PaymentServiceImpl implements PaymentService {
             payment.setStatus(Status.FAILED);
             // Khách chuyển thiếu tiền -> Code chỉ đánh rớt giao dịch Payment này. 
             // KHÔNG chuyển Booking thành FAILED ở đây để giữ ghế (Booking vẫn PENDING) cho đến khi Cron job 10 phút quét.
-            log.warn("Payment FAILED for booking {} due to insufficient amount. Expected: {}, Received: {}", 
-                     booking.getId(), payment.getBooking().getTotalPrice(), request.transferAmount());
         } else {
             payment.setStatus(Status.SUCCESS);
             booking.setStatus(Status.SUCCESS);
