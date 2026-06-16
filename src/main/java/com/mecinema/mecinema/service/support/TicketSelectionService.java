@@ -27,7 +27,7 @@ public class TicketSelectionService {
     public record TicketSelectionResult(Set<Ticket> tickets, BigDecimal totalSeatPrice) {}
 
     public TicketSelectionResult createTicketsAndCalculateTotal(Booking booking, Showtime showtime, List<Long> seatIds) {
-        seatSelectionValidator.validateSelection(showtime, seatIds);
+        seatSelectionValidator.validateSelection(seatIds);
 
         List<Seat> lockedSeats = seatRepository.findAllByIdForUpdate(seatIds);
         if (lockedSeats.size() != seatIds.size()) {

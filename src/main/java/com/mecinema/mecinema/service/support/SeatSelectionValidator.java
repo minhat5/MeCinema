@@ -24,7 +24,7 @@ public class SeatSelectionValidator {
     private final TicketRepository ticketRepository;
     private final BookingProperties bookingProperties;
 
-    public void validateSelection(Showtime showtime, Collection<Long> seatIds) {
+    public void validateSelection(Collection<Long> seatIds) {
         if (seatIds == null || seatIds.isEmpty()) {
             throw new BookingException("Seat selection cannot be empty");
         }
