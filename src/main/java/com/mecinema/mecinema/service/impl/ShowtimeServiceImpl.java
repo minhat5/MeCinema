@@ -43,12 +43,8 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     @Override
     @Transactional(readOnly = true)
     public ShowtimeDTO getShowtimeById(Long id) {
-        log.info("Fetching showtime with id: {}", id);
         Showtime showtime = showtimeRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Showtime not found with id: {}", id);
-                    return new RuntimeException("Lịch chiếu không tồn tại với ID: " + id);
-                });
+                .orElseThrow(() -> new RuntimeException("Lịch chiếu không tồn tại với ID: " + id));
         return convertToDTO(showtime);
     }
     
@@ -59,15 +55,11 @@ public class ShowtimeServiceImpl implements ShowtimeService {
         
         // Fetch movie
         Movie movie = movieRepository.findById(request.getMovieId())
-                .orElseThrow(() -> {
-                    return new RuntimeException("Bộ phim không tồn tại với ID: " + request.getMovieId());
-                });
+                .orElseThrow(() -> new RuntimeException("Bộ phim không tồn tại với ID: " + request.getMovieId()));
         
         // Fetch room
         Room room = roomRepository.findById(request.getRoomId())
-                .orElseThrow(() -> {
-                    return new RuntimeException("Phòng chiếu không tồn tại với ID: " + request.getRoomId());
-                });
+                .orElseThrow(() -> new RuntimeException("Phòng chiếu không tồn tại với ID: " + request.getRoomId()));
         
         // Check for conflicting showtimes
         List<Showtime> conflicts = showtimeRepository.findConflictingShowtimes(
@@ -97,9 +89,7 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     @Override
     public ShowtimeDTO updateShowtime(Long id, UpdateShowtimeRequest request) {
         Showtime showtime = showtimeRepository.findById(id)
-                .orElseThrow(() -> {
-                    return new RuntimeException("Lịch chiếu không tồn tại với ID: " + id);
-                });
+                .orElseThrow(() -> new RuntimeException("Lịch chiếu không tồn tại với ID: " + id));
 
         Room currentRoom = showtime.getRoom();
         Room targetRoom = currentRoom;
@@ -107,9 +97,7 @@ public class ShowtimeServiceImpl implements ShowtimeService {
         // Cho phép đổi phòng chiếu. Nếu đổi sang cơ sở khác thì chặn khi đã có người đặt vé.
         if (request.getRoomId() != null) {
             targetRoom = roomRepository.findById(request.getRoomId())
-                    .orElseThrow(() -> {
-                        return new RuntimeException("Phòng chiếu không tồn tại với ID: " + request.getRoomId());
-                    });
+                    .orElseThrow(() -> new RuntimeException("Phòng chiếu không tồn tại với ID: " + request.getRoomId()));
 
             boolean cinemaChanged = !targetRoom.getCinema().getId().equals(currentRoom.getCinema().getId());
             if (cinemaChanged) {
@@ -170,25 +158,18 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     
     @Override
     public void deleteShowtime(Long id) {
-        log.info("Deleting showtime with id: {}", id);
-        
         if (!showtimeRepository.existsById(id)) {
-            log.error("Showtime not found with id: {}", id);
             throw new RuntimeException("Lịch chiếu không tồn tại với ID: " + id);
         }
         
         showtimeRepository.deleteById(id);
-        log.info("Showtime deleted successfully with id: {}", id);
     }
     
     @Override
     @Transactional(readOnly = true)
     public List<ShowtimeDTO> getShowtimesByMovie(Long movieId) {
-        log.info("Fetching all showtimes for movie: {}", movieId);
-        
         // Verify movie exists
         if (!movieRepository.existsById(movieId)) {
-            log.error("Movie not found with id: {}", movieId);
             throw new RuntimeException("Bộ phim không tồn tại với ID: " + movieId);
         }
         
@@ -201,11 +182,8 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     @Override
     @Transactional(readOnly = true)
     public List<ShowtimeDTO> getShowtimesByRoom(Long roomId) {
-        log.info("Fetching all showtimes for room: {}", roomId);
-        
         // Verify room exists
         if (!roomRepository.existsById(roomId)) {
-            log.error("Room not found with id: {}", roomId);
             throw new RuntimeException("Phòng chiếu không tồn tại với ID: " + roomId);
         }
         
@@ -218,8 +196,6 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     @Override
     @Transactional(readOnly = true)
     public PaginatedResponse<ShowtimeDTO> getShowtimesByCinema(Long cinemaId, Pageable pageable) {
-        log.info("Fetching showtimes for cinema: {} with pagination", cinemaId);
-        
         Page<Showtime> page = showtimeRepository.findByCinemaId(cinemaId, pageable);
         
         List<ShowtimeDTO> content = page.getContent().stream()
@@ -240,8 +216,6 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     @Override
     @Transactional(readOnly = true)
     public PaginatedResponse<ShowtimeDTO> getUpcomingShowtimes(Pageable pageable) {
-        log.info("Fetching upcoming showtimes");
-        
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime weekLater = now.plusWeeks(1);
         
@@ -265,8 +239,6 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     @Override
     @Transactional(readOnly = true)
     public PaginatedResponse<ShowtimeDTO> getFutureShowtimes(Pageable pageable) {
-        log.info("Fetching future showtimes from now");
-
         LocalDateTime now = LocalDateTime.now();
         Page<Showtime> page = showtimeRepository.findFutureShowtimes(now, pageable);
 
@@ -288,8 +260,6 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     @Override
     @Transactional(readOnly = true)
     public List<ShowtimeDTO> getShowtimesOfDay(LocalDate date) {
-        log.info("Fetching showtimes for date: {}", date);
-        
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
         
@@ -303,8 +273,6 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     @Override
     @Transactional(readOnly = true)
     public PaginatedResponse<ShowtimeDTO> getAllShowtimes(Pageable pageable) {
-        log.info("Fetching all showtimes with pagination");
-        
         Page<Showtime> page = showtimeRepository.findAll(pageable);
         
         List<ShowtimeDTO> content = page.getContent().stream()
