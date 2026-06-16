@@ -54,22 +54,18 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     
     @Override
     public ShowtimeDTO createShowtime(CreateShowtimeRequest request) {
-        log.info("Creating new showtime for movie: {} and room: {}", request.getMovieId(), request.getRoomId());
-        
         // Validate time
         validateShowtimeTime(request.getStartTime(), request.getEndTime());
         
         // Fetch movie
         Movie movie = movieRepository.findById(request.getMovieId())
                 .orElseThrow(() -> {
-                    log.error("Movie not found with id: {}", request.getMovieId());
                     return new RuntimeException("Bộ phim không tồn tại với ID: " + request.getMovieId());
                 });
         
         // Fetch room
         Room room = roomRepository.findById(request.getRoomId())
                 .orElseThrow(() -> {
-                    log.error("Room not found with id: {}", request.getRoomId());
                     return new RuntimeException("Phòng chiếu không tồn tại với ID: " + request.getRoomId());
                 });
         
@@ -81,7 +77,6 @@ public class ShowtimeServiceImpl implements ShowtimeService {
         );
         
         if (!conflicts.isEmpty()) {
-            log.warn("Conflict detected: Room {} already has showtime(s) during this period", room.getId());
             throw new RuntimeException("Phòng chiếu đã có lịch chiếu trong thời gian này. Vui lòng chọn thời gian khác.");
         }
         
@@ -95,18 +90,14 @@ public class ShowtimeServiceImpl implements ShowtimeService {
                 .build();
         
         showtime = showtimeRepository.save(showtime);
-        log.info("Showtime created successfully with id: {}", showtime.getId());
-        
+
         return convertToDTO(showtime);
     }
     
     @Override
     public ShowtimeDTO updateShowtime(Long id, UpdateShowtimeRequest request) {
-        log.info("Updating showtime with id: {}", id);
-        
         Showtime showtime = showtimeRepository.findById(id)
                 .orElseThrow(() -> {
-                    log.error("Showtime not found with id: {}", id);
                     return new RuntimeException("Lịch chiếu không tồn tại với ID: " + id);
                 });
 
@@ -117,7 +108,6 @@ public class ShowtimeServiceImpl implements ShowtimeService {
         if (request.getRoomId() != null) {
             targetRoom = roomRepository.findById(request.getRoomId())
                     .orElseThrow(() -> {
-                        log.error("Room not found with id: {}", request.getRoomId());
                         return new RuntimeException("Phòng chiếu không tồn tại với ID: " + request.getRoomId());
                     });
 
@@ -169,14 +159,12 @@ public class ShowtimeServiceImpl implements ShowtimeService {
                     .collect(Collectors.toList());
             
             if (!conflicts.isEmpty()) {
-                log.warn("Conflict detected during update: Room {} has conflicting showtimes", showtime.getRoom().getId());
                 throw new RuntimeException("Phòng chiếu đã có lịch chiếu trong thời gian này. Vui lòng chọn thời gian khác.");
             }
         }
         
         showtime = showtimeRepository.save(showtime);
-        log.info("Showtime updated successfully with id: {}", id);
-        
+
         return convertToDTO(showtime);
     }
     
